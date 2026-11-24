@@ -1,0 +1,50 @@
+{
+  "vanguard": {
+    "name": "Vanguard", "archetype": "Melee",
+    "desc": "Durable frontline fighter. Crushes enemies up close and shrugs off damage.",
+    "color": "#3d7dd8", "accent": "#c9d4e8", "hair": "#6b4a2e", "weapon": "sword_shield",
+    "hp": 175, "speed": 215, "jump": 650, "jumps": 1, "dodge_cd": 1.0, "size": 1.12,
+    "basic": "vanguard_basic",
+    "skills": ["shield_rush", "ground_breaker", "iron_fortress"]
+  },
+  "duelist": {
+    "name": "Duelist", "archetype": "Melee",
+    "desc": "Fast close-range fencer with a double jump and lightning combos.",
+    "color": "#d8453d", "accent": "#f2d27a", "hair": "#2b2b3a", "weapon": "rapier",
+    "hp": 145, "speed": 310, "jump": 700, "jumps": 2, "dodge_cd": 0.7, "size": 1.0,
+    "basic": "duelist_basic",
+    "skills": ["quick_slash", "blade_spin", "phantom_step"]
+  },
+  "ranger": {
+    "name": "Ranger", "archetype": "Ranged",
+    "desc": "Bow-based marksman. Pins enemies down from a distance.",
+    "color": "#3fae5a", "accent": "#e8d9a0", "hair": "#8a5a2a", "weapon": "bow",
+    "hp": 95, "speed": 245, "jump": 690, "jumps": 1, "dodge_cd": 0.9, "size": 1.0,
+    "basic": "ranger_basic",
+    "skills": ["piercing_shot", "arrow_rain", "shadow_dash"]
+  },
+  "gunslinger": {
+    "name": "Gunslinger", "archetype": "Ranged",
+    "desc": "Rapid projectile fighter. Bursts, blasts and rolls out of danger.",
+    "color": "#e0902f", "accent": "#5b3a22", "hair": "#d8d0c0", "weapon": "pistol",
+    "hp": 100, "speed": 260, "jump": 690, "jumps": 1, "dodge_cd": 0.8, "size": 1.0,
+    "basic": "gunslinger_basic",
+    "skills": ["quick_burst", "explosive_round", "tactical_roll"]
+  },
+  "arcanist": {
+    "name": "Arcanist", "archetype": "Magic",
+    "desc": "Elemental caster. Freezes the arena and calls down meteors.",
+    "color": "#9a55d8", "accent": "#7fd8ff", "hair": "#e8e8f8", "weapon": "staff",
+    "hp": 95, "speed": 225, "jump": 680, "jumps": 1, "dodge_cd": 1.0, "size": 1.0,
+    "basic": "arcanist_basic",
+    "skills": ["arcane_bolt", "frost_nova", "meteor_fall"]
+  },
+  "shadeweaver": {
+    "name": "Shadeweaver", "archetype": "Magic",
+    "desc": "Shadow controller. Binds enemies and blinks through the Rift.",
+    "color": "#4b3a8a", "accent": "#d84ad0", "hair": "#18121f", "weapon": "scythe",
+    "hp": 115, "speed": 250, "jump": 690, "jumps": 1, "dodge_cd": 0.9, "size": 1.0,
+    "basic": "shadeweaver_basic",
+    "skills": ["shadow_bolt", "binding_chains", "rift_blink"]
+  }
+}

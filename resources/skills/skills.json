@@ -1,0 +1,31 @@
+{
+  "vanguard_basic": {"name": "Shield Bash", "kind": "melee", "cd": 0.5, "dmg": 9, "windup": 0.10, "recover": 0.22, "kb": 260, "kb_up": 120, "stun": 0.22, "w": 78, "h": 70, "reach": 46, "color": "#c9d4e8", "icon": "sword"},
+  "shield_rush": {"name": "Shield Rush", "kind": "dash_hit", "cd": 6.0, "dmg": 16, "windup": 0.10, "recover": 0.15, "dist": 300, "dur": 0.26, "kb": 520, "kb_up": 220, "stun": 0.4, "w": 70, "h": 80, "color": "#6fb0ff", "icon": "rush"},
+  "ground_breaker": {"name": "Ground Breaker", "kind": "slam", "cd": 8.0, "dmg": 18, "windup": 0.30, "recover": 0.35, "kb": 380, "kb_up": 520, "stun": 0.5, "w": 150, "h": 60, "reach": 60, "wave_speed": 420, "wave_range": 360, "wave_dmg": 12, "color": "#b08a5a", "icon": "slam"},
+  "iron_fortress": {"name": "Iron Fortress", "kind": "shield", "cd": 14.0, "dur": 3.5, "reduction": 0.7, "windup": 0.08, "recover": 0.12, "color": "#9fb4d8", "icon": "shield"},
+
+  "duelist_basic": {"name": "Rapier Thrust", "kind": "melee", "cd": 0.3, "dmg": 8, "windup": 0.06, "recover": 0.15, "kb": 160, "kb_up": 60, "stun": 0.16, "w": 88, "h": 44, "reach": 52, "color": "#f2d27a", "icon": "sword"},
+  "quick_slash": {"name": "Quick Slash", "kind": "multi_melee", "cd": 4.0, "dmg": 8, "hits": 3, "interval": 0.11, "windup": 0.06, "recover": 0.18, "kb": 140, "kb_up": 80, "stun": 0.2, "w": 100, "h": 60, "reach": 56, "color": "#ff8a7a", "icon": "slash"},
+  "blade_spin": {"name": "Blade Spin", "kind": "spin", "cd": 7.0, "dmg": 10, "hits": 3, "dur": 0.55, "radius": 100, "windup": 0.08, "recover": 0.2, "kb": 330, "kb_up": 200, "stun": 0.3, "color": "#f2d27a", "icon": "spin"},
+  "phantom_step": {"name": "Phantom Step", "kind": "dash_through", "cd": 7.5, "dist": 360, "dur": 0.22, "invuln": 0.3, "empower": 1.8, "empower_dur": 3.5, "windup": 0.04, "recover": 0.1, "color": "#b080ff", "icon": "phantom"},
+
+  "ranger_basic": {"name": "Arrow", "kind": "projectile", "cd": 0.5, "dmg": 7, "windup": 0.12, "recover": 0.18, "speed": 820, "life": 1.0, "kb": 140, "kb_up": 60, "stun": 0.15, "style": "arrow", "color": "#e8d9a0", "icon": "arrow"},
+  "piercing_shot": {"name": "Piercing Shot", "kind": "projectile", "cd": 6.0, "dmg": 20, "windup": 0.22, "recover": 0.22, "speed": 1250, "life": 1.1, "pierce": 5, "kb": 300, "kb_up": 100, "stun": 0.3, "style": "arrow_big", "color": "#7fff9a", "icon": "pierce"},
+  "arrow_rain": {"name": "Arrow Rain", "kind": "zone", "cd": 9.5, "dmg": 6, "windup": 0.22, "recover": 0.25, "target": "forward", "reach": 330, "radius": 120, "delay": 0.4, "ticks": 5, "interval": 0.22, "kb": 60, "kb_up": 160, "stun": 0.2, "style": "arrows", "color": "#e8d9a0", "icon": "rain"},
+  "shadow_dash": {"name": "Shadow Dash", "kind": "evade", "cd": 7.0, "dir": "back", "dist": 280, "dur": 0.2, "invuln": 0.28, "haste": 1.35, "haste_dur": 3.0, "windup": 0.02, "recover": 0.08, "color": "#6a5acd", "icon": "dash"},
+
+  "gunslinger_basic": {"name": "Pistol Shot", "kind": "projectile", "cd": 0.36, "dmg": 4, "windup": 0.05, "recover": 0.1, "speed": 1000, "life": 0.9, "kb": 80, "kb_up": 20, "stun": 0.1, "style": "bullet", "color": "#ffd66b", "icon": "bullet"},
+  "quick_burst": {"name": "Quick Burst", "kind": "projectile", "cd": 5.5, "dmg": 5, "count": 4, "stagger": 0.07, "windup": 0.06, "recover": 0.2, "speed": 1100, "life": 0.9, "kb": 100, "kb_up": 20, "stun": 0.12, "style": "bullet", "color": "#ffd66b", "icon": "burst"},
+  "explosive_round": {"name": "Explosive Round", "kind": "projectile", "cd": 9.0, "dmg": 12, "windup": 0.22, "recover": 0.3, "speed": 700, "life": 1.2, "explode": 105, "explode_dmg": 16, "kb": 420, "kb_up": 380, "stun": 0.4, "style": "shell", "color": "#ff7a3a", "icon": "bomb"},
+  "tactical_roll": {"name": "Tactical Roll", "kind": "evade", "cd": 6.0, "dir": "forward", "dist": 260, "dur": 0.28, "invuln": 0.3, "cdr": 1.5, "windup": 0.02, "recover": 0.06, "color": "#c9a46a", "icon": "roll"},
+
+  "arcanist_basic": {"name": "Arcane Orb", "kind": "projectile", "cd": 0.55, "dmg": 8, "windup": 0.14, "recover": 0.2, "speed": 640, "life": 1.2, "kb": 130, "kb_up": 50, "stun": 0.15, "style": "orb", "color": "#c28bff", "icon": "orb"},
+  "arcane_bolt": {"name": "Arcane Bolt", "kind": "projectile", "cd": 4.5, "dmg": 17, "windup": 0.22, "recover": 0.22, "speed": 760, "life": 1.6, "homing": 2.4, "kb": 280, "kb_up": 140, "stun": 0.3, "style": "bolt", "color": "#7fd8ff", "icon": "bolt"},
+  "frost_nova": {"name": "Frost Nova", "kind": "nova", "cd": 9.0, "dmg": 10, "radius": 190, "windup": 0.18, "recover": 0.25, "kb": 160, "kb_up": 220, "stun": 0.25, "status": "slow", "status_dur": 2.5, "color": "#9fe8ff", "icon": "frost"},
+  "meteor_fall": {"name": "Meteor Fall", "kind": "zone", "cd": 14.0, "dmg": 30, "windup": 0.30, "recover": 0.3, "target": "enemy", "radius": 135, "delay": 1.0, "ticks": 1, "interval": 0.1, "kb": 460, "kb_up": 520, "stun": 0.55, "style": "meteor", "color": "#ff7a3a", "icon": "meteor"},
+
+  "shadeweaver_basic": {"name": "Void Lash", "kind": "melee", "cd": 0.4, "dmg": 9, "windup": 0.10, "recover": 0.17, "kb": 190, "kb_up": 70, "stun": 0.18, "w": 108, "h": 60, "reach": 62, "color": "#d84ad0", "icon": "scythe"},
+  "shadow_bolt": {"name": "Shadow Bolt", "kind": "projectile", "cd": 3.5, "dmg": 17, "windup": 0.18, "recover": 0.2, "speed": 880, "life": 1.3, "kb": 220, "kb_up": 100, "stun": 0.28, "status": "slow", "status_dur": 1.5, "style": "dark", "color": "#d84ad0", "icon": "dark"},
+  "binding_chains": {"name": "Binding Chains", "kind": "projectile", "cd": 9.0, "dmg": 9, "windup": 0.2, "recover": 0.25, "speed": 780, "life": 1.0, "kb": 0, "kb_up": 0, "stun": 0.1, "status": "root", "status_dur": 1.8, "style": "chain", "color": "#a0a0c8", "icon": "chain"},
+  "rift_blink": {"name": "Rift Blink", "kind": "blink", "cd": 7.0, "dist": 300, "invuln": 0.25, "burst_radius": 90, "dmg": 9, "windup": 0.05, "recover": 0.1, "kb": 260, "kb_up": 200, "stun": 0.3, "color": "#ff6ae0", "icon": "blink"}
+}

@@ -1,0 +1,8 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+# Build output and local test artefacts
+build/
+*.apk
+*.aab
+*.idsig
