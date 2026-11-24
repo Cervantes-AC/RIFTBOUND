@@ -1,0 +1,170 @@
+class_name HUD
+extends CanvasLayer
+## Gameplay HUD: team health bars (with a delayed "damage trail"), match timer, objective banner,
+## countdown/center messages and the pause button.
+
+signal pause_pressed
+
+var world = null
+var bars: Bars
+var timer_label: Label
+var center_label: Label
+var banner: Label
+var hint_label: Label
+var pause_button: Button
+var _center_tween: Tween
+var _hint_tween: Tween
+
+
+class Bars extends Control:
+	var world = null
+	var trail: Dictionary = {}
+
+	func _process(delta: float) -> void:
+		if world == null:
+			return
+		for f in world.fighters:
+			var r: float = f.health.ratio()
+			var t: float = trail.get(f.slot, r)
+			t = r if t < r else move_toward(t, r, delta * 0.45)
+			trail[f.slot] = t
+		queue_redraw()
+
+	func _draw() -> void:
+		if world == null:
+			return
+		var inset := PixelUI.safe_insets(get_viewport())
+		var margin := 28.0
+		for team in 2:
+			var members: Array = world.fighters.filter(func(x): return x.team == team)
+			var count := members.size()
+			var w := 430.0 if count == 1 else 330.0
+			var h := 30.0 if count == 1 else 22.0
+			for i in count:
+				var f: Fighter = members[i]
+				var y := 22.0 + i * (h + 38.0)
+				var x := margin + inset.x if team == 0 else size.x - margin - inset.y - w
+				_draw_bar(f, Vector2(x, y), Vector2(w, h), team == 1)
+
+	func _draw_bar(f: Fighter, pos: Vector2, sz: Vector2, mirrored: bool) -> void:
+		var font := PixelUI.FONT
+		var ratio := f.health.ratio()
+		var tr: float = trail.get(f.slot, ratio)
+		var local: bool = f.slot == world.local_slot
+		# frame
+		draw_rect(Rect2(pos - Vector2(4, 4), sz + Vector2(8, 8)), Color("#08050f"))
+		draw_rect(Rect2(pos - Vector2(2, 2), sz + Vector2(4, 4)), Color("#2c2250") if not local else Color("#ffd24a"))
+		draw_rect(Rect2(pos, sz), Color("#1a0d14"))
+		var fill_w := sz.x * ratio
+		var trail_w := sz.x * tr
+		var col := Color("#4fd36b")
+		if ratio < 0.6:
+			col = Color("#f0c23a")
+		if ratio < 0.3:
+			col = Color("#e8484f")
+		if mirrored:
+			draw_rect(Rect2(pos.x + sz.x - trail_w, pos.y, trail_w, sz.y), Color(1, 1, 1, 0.85))
+			draw_rect(Rect2(pos.x + sz.x - fill_w, pos.y, fill_w, sz.y), col)
+			draw_rect(Rect2(pos.x + sz.x - fill_w, pos.y, fill_w, sz.y * 0.35), col.lightened(0.35))
+		else:
+			draw_rect(Rect2(pos.x, pos.y, trail_w, sz.y), Color(1, 1, 1, 0.85))
+			draw_rect(Rect2(pos.x, pos.y, fill_w, sz.y), col)
+			draw_rect(Rect2(pos.x, pos.y, fill_w, sz.y * 0.35), col.lightened(0.35))
+		# class colour chip + name
+		var chip := Rect2(pos.x, pos.y + sz.y + 8.0, 16, 16)
+		if mirrored:
+			chip.position.x = pos.x + sz.x - 16.0
+		draw_rect(chip.grow(2), Color("#08050f"))
+		draw_rect(chip, f.data.color)
+		var name_text := ("YOU: %s" if f.slot == world.local_slot else "%s") % f.data.display_name
+		var align := HORIZONTAL_ALIGNMENT_RIGHT if mirrored else HORIZONTAL_ALIGNMENT_LEFT
+		var tx := pos.x if not mirrored else pos.x
+		draw_string(font, Vector2(tx + (-26.0 if mirrored else 26.0), pos.y + sz.y + 22.0), name_text, align, sz.x, 14, Color.WHITE if not f.is_dead() else Color(1, 1, 1, 0.4))
+		if f.is_dead():
+			draw_string(font, Vector2(pos.x, pos.y + sz.y - 6.0), "KO", HORIZONTAL_ALIGNMENT_CENTER, sz.x, 16, Color("#e8484f"))
+
+
+func _ready() -> void:
+	layer = 5
+	process_mode = Node.PROCESS_MODE_PAUSABLE
+	bars = Bars.new()
+	bars.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bars.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(bars)
+	timer_label = PixelUI.label("90", 40, PixelUI.C_TEXT, HORIZONTAL_ALIGNMENT_CENTER)
+	timer_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	timer_label.position = Vector2(-60, 18)
+	timer_label.custom_minimum_size = Vector2(120, 0)
+	timer_label.size = Vector2(120, 50)
+	add_child(timer_label)
+	center_label = PixelUI.label("", 64, PixelUI.C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
+	center_label.set_anchors_preset(Control.PRESET_CENTER)
+	center_label.custom_minimum_size = Vector2(1000, 0)
+	center_label.size = Vector2(1000, 90)
+	center_label.position = Vector2(-500, -140)
+	center_label.pivot_offset = Vector2(500, 45)
+	center_label.modulate.a = 0.0
+	add_child(center_label)
+	banner = PixelUI.wrap_label("", 16, PixelUI.C_TEXT, HORIZONTAL_ALIGNMENT_CENTER)
+	banner.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	banner.custom_minimum_size = Vector2(640, 0)
+	banner.size = Vector2(640, 40)
+	banner.position = Vector2(-320, 86)
+	banner.modulate.a = 0.0
+	add_child(banner)
+	hint_label = PixelUI.wrap_label("", 16, PixelUI.C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
+	hint_label.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	hint_label.custom_minimum_size = Vector2(620, 0)
+	hint_label.size = Vector2(620, 40)
+	hint_label.position = Vector2(-310, 150)
+	hint_label.modulate.a = 0.0
+	add_child(hint_label)
+	pause_button = PixelUI.button("II", PixelUI.C_PANEL_LIGHT, 18, Vector2(60, 56))
+	pause_button.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	pause_button.position = Vector2(110, 20)
+	pause_button.size = Vector2(60, 56)
+	pause_button.pressed.connect(func(): pause_pressed.emit())
+	add_child(pause_button)
+
+
+func setup(p_world) -> void:
+	world = p_world
+	bars.world = p_world
+
+
+func set_time(seconds: float) -> void:
+	var s := maxi(int(ceil(seconds)), 0)
+	timer_label.text = str(s)
+	timer_label.add_theme_color_override("font_color", PixelUI.C_RED if s <= 10 else PixelUI.C_TEXT)
+
+
+func show_center(text: String, seconds: float = 0.9, color: Color = PixelUI.C_GOLD, font_size: int = 64) -> void:
+	center_label.text = text
+	center_label.add_theme_font_size_override("font_size", font_size)
+	center_label.add_theme_color_override("font_color", color)
+	if _center_tween:
+		_center_tween.kill()
+	center_label.modulate.a = 1.0
+	center_label.scale = Vector2(1.5, 1.5)
+	_center_tween = create_tween()
+	_center_tween.tween_property(center_label, "scale", Vector2.ONE, 0.18).set_ease(Tween.EASE_OUT)
+	_center_tween.tween_interval(maxf(seconds - 0.4, 0.05))
+	_center_tween.tween_property(center_label, "modulate:a", 0.0, 0.25)
+
+
+func show_banner(text: String, seconds: float = 4.0) -> void:
+	banner.text = text
+	banner.modulate.a = 1.0
+	var tw := create_tween()
+	tw.tween_interval(seconds)
+	tw.tween_property(banner, "modulate:a", 0.0, 0.5)
+
+
+func show_hint(text: String, seconds: float = 4.0) -> void:
+	hint_label.text = text
+	hint_label.modulate.a = 1.0
+	if _hint_tween:
+		_hint_tween.kill()
+	_hint_tween = create_tween()
+	_hint_tween.tween_interval(seconds)
+	_hint_tween.tween_property(hint_label, "modulate:a", 0.0, 0.5)
