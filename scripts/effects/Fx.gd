@@ -34,12 +34,21 @@ static func spawn(parent: Node, fx_kind: String, pos: Vector2, fx_data: Dictiona
 				"trail":
 					fx.life = 0.25
 				"muzzle":
-					fx.life = 0.1
+					fx.life = 0.14
 				"spin":
 					fx.life = float(fx_data.get("dur", 0.5))
 				"hit":
-					fx.life = 0.16
-					_particles(parent, pos, fx_data.get("color", Color.WHITE), 7, 0.35, 120.0, 300.0, Vector2.ZERO, 180.0, 4.0)
+					fx.life = 0.24
+					var hdir := Vector2(float(fx_data.get("dir", 0.0)), -0.25)
+					var hc: Color = fx_data.get("color", Color.WHITE)
+					var heavy_hit := bool(fx_data.get("heavy", false))
+					var has_dir := hdir.x != 0.0
+					_particles(parent, pos, hc, 9 if heavy_hit else 6, 0.4, 140.0, 360.0, hdir if has_dir else Vector2.UP, 70.0 if has_dir else 180.0, 4.0)
+					_particles(parent, pos, Color.WHITE, 4, 0.22, 200.0, 420.0, hdir if has_dir else Vector2.UP, 40.0, 3.0)
+				"ghost":
+					fx.life = 0.28
+				"rune":
+					fx.life = 0.55
 				_:
 					fx.life = 0.2
 			parent.add_child(fx)
@@ -112,8 +121,10 @@ func _draw() -> void:
 			for i in 9:
 				var a := a0 + i * 0.22
 				pts.append(Vector2(cos(a) * w * 0.8 * dir - dir * 20.0, sin(a) * w * 0.75))
+			draw_polyline(pts, Color(c, 0.35 * (1.0 - f)), 22.0 * (1.0 - f) + 4.0)
 			draw_polyline(pts, Color(c, 1.0 - f), 9.0 * (1.0 - f) + 2.0)
 			draw_polyline(pts, Color(1, 1, 1, 0.8 * (1.0 - f)), 3.0)
+			draw_circle(pts[pts.size() - 1], 6.0 * (1.0 - f), Color(1, 1, 1, 0.9))
 		"ring":
 			var r := float(data.get("radius", 100.0)) * (0.25 + 0.75 * f)
 			draw_arc(Vector2.ZERO, r, 0.0, TAU, 40, Color(c, 1.0 - f), 8.0 * (1.0 - f) + 2.0)
@@ -123,6 +134,10 @@ func _draw() -> void:
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2(1.0, 0.3))
 			draw_arc(Vector2.ZERO, r2, 0.0, TAU, 32, Color(c, 1.0 - f), 8.0)
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+			for k in 6:   # ground cracks radiating out
+				var sgn := -1.0 if k % 2 == 0 else 1.0
+				var cx := sgn * r2 * (0.25 + 0.12 * (k / 2))
+				draw_line(Vector2(cx, 0), Vector2(cx + sgn * 26.0, 8.0 + 4.0 * (k / 2)), Color(c, 1.0 - f), 4.0)
 		"trail":
 			var dir2 := float(data.get("dir", 1))
 			for i in 5:
@@ -132,6 +147,9 @@ func _draw() -> void:
 			var dir3 := float(data.get("dir", 1))
 			draw_rect(Rect2(0, -6, dir3 * 26.0 * (1.0 - f), 12), Color(c, 1.0 - f))
 			draw_circle(Vector2.ZERO, 12.0 * (1.0 - f), Color.WHITE)
+			var ms := 18.0 * (1.0 - f)
+			draw_line(Vector2(-ms * 0.5, -ms), Vector2(dir3 * ms * 1.5, 0), Color(c, 0.9 * (1.0 - f)), 3.0)
+			draw_line(Vector2(-ms * 0.5, ms), Vector2(dir3 * ms * 1.5, 0), Color(c, 0.9 * (1.0 - f)), 3.0)
 		"spin":
 			var r3 := float(data.get("radius", 100.0))
 			var rot := f * TAU * 3.0
@@ -139,10 +157,54 @@ func _draw() -> void:
 			draw_arc(Vector2.ZERO, r3, rot + PI, rot + PI + 2.4, 16, Color(c, 0.9 * (1.0 - f * 0.5)), 8.0)
 		"hit":
 			var s := 26.0 * (1.0 - f)
-			draw_line(Vector2(-s, 0), Vector2(s, 0), Color.WHITE, 4.0)
-			draw_line(Vector2(0, -s), Vector2(0, s), Color.WHITE, 4.0)
-			draw_line(Vector2(-s * 0.7, -s * 0.7), Vector2(s * 0.7, s * 0.7), c, 3.0)
-			draw_line(Vector2(-s * 0.7, s * 0.7), Vector2(s * 0.7, -s * 0.7), c, 3.0)
+			var cls := str(data.get("cls", ""))
+			var big := 1.35 if bool(data.get("heavy", false)) else 1.0
+			s *= big
+			draw_circle(Vector2.ZERO, 22.0 * (1.0 - f) * big, Color(1, 1, 1, 0.55 * (1.0 - f)))
+			match cls:
+				"vanguard":   # blunt impact ring + cracks
+					draw_arc(Vector2.ZERO, 14.0 + 34.0 * f * big, 0.0, TAU, 20, Color(c, 1.0 - f), 6.0)
+					for k in 5:
+						var ang := k * TAU / 5.0 + 0.4
+						draw_line(Vector2(cos(ang), sin(ang)) * 10.0, Vector2(cos(ang), sin(ang)) * (22.0 + 26.0 * f) * big, Color.WHITE, 4.0)
+				"duelist":    # thin crossing slashes
+					draw_line(Vector2(-s * 1.6, -s * 0.8), Vector2(s * 1.6, s * 0.8), Color.WHITE, 3.0)
+					draw_line(Vector2(-s * 1.6, s * 0.2), Vector2(s * 1.6, -s * 1.0), c, 3.0)
+				"ranger":     # precise vertical pierce
+					draw_line(Vector2(0, -s * 1.8), Vector2(0, s * 1.8), Color.WHITE, 3.0)
+					draw_line(Vector2(-s * 1.1, 0), Vector2(s * 1.1, 0), c, 3.0)
+				"gunslinger": # starburst
+					for k in 8:
+						var ang2 := k * TAU / 8.0
+						draw_line(Vector2(cos(ang2), sin(ang2)) * 6.0, Vector2(cos(ang2), sin(ang2)) * s * 1.5, Color("#ffd66b") if k % 2 == 0 else Color.WHITE, 3.0)
+				"arcanist":   # rune ring
+					draw_arc(Vector2.ZERO, 12.0 + 26.0 * f, 0.0, TAU, 16, Color(c, 1.0 - f), 4.0)
+					draw_arc(Vector2.ZERO, 6.0 + 14.0 * f, f * 6.0, f * 6.0 + 4.0, 10, Color.WHITE, 3.0)
+				"shadeweaver": # dark tendrils
+					for k in 4:
+						var ang3 := k * TAU / 4.0 + f * 2.0
+						draw_line(Vector2.ZERO, Vector2(cos(ang3), sin(ang3)) * s * 1.7, Color(0.15, 0.0, 0.25, 1.0 - f), 7.0)
+						draw_line(Vector2.ZERO, Vector2(cos(ang3), sin(ang3)) * s * 1.7, c, 3.0)
+				_:
+					draw_line(Vector2(-s, 0), Vector2(s, 0), Color.WHITE, 4.0)
+					draw_line(Vector2(0, -s), Vector2(0, s), Color.WHITE, 4.0)
+					draw_line(Vector2(-s * 0.7, -s * 0.7), Vector2(s * 0.7, s * 0.7), c, 3.0)
+					draw_line(Vector2(-s * 0.7, s * 0.7), Vector2(s * 0.7, -s * 0.7), c, 3.0)
+		"ghost":   # dash afterimage: simple class-coloured silhouette
+			var gd := float(data.get("dir", 1.0))
+			var ga := 0.5 * (1.0 - f)
+			draw_rect(Rect2(-9, -56, 18, 56), Color(c, ga))
+			draw_rect(Rect2(-9, -78, 18, 22), Color(c.lightened(0.3), ga))
+			draw_rect(Rect2(gd * 10.0 + (0.0 if gd > 0.0 else -40.0), -40, 40, 5), Color(1, 1, 1, ga))
+		"rune":    # casting circle on the ground
+			var rr := float(data.get("radius", 60.0)) * (0.5 + 0.5 * minf(f * 3.0, 1.0))
+			draw_set_transform(Vector2(0, -2), 0.0, Vector2(1.0, 0.3))
+			draw_arc(Vector2.ZERO, rr, 0.0, TAU, 32, Color(c, 0.9 * (1.0 - f)), 5.0)
+			draw_arc(Vector2.ZERO, rr * 0.66, f * 5.0, f * 5.0 + TAU * 0.7, 24, Color(1, 1, 1, 0.8 * (1.0 - f)), 3.0)
+			for k in 6:
+				var ra := f * 3.0 + k * TAU / 6.0
+				draw_rect(Rect2(cos(ra) * rr - 3, sin(ra) * rr - 3, 6, 6), Color(c, 1.0 - f))
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 		"pillar":
 			var h := 520.0
 			draw_rect(Rect2(-float(data.get("radius", 60.0)) * (1.0 - f), -h, float(data.get("radius", 60.0)) * 2.0 * (1.0 - f), h), Color(c, 0.6 * (1.0 - f)))

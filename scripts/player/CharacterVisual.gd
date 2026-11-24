@@ -12,7 +12,7 @@ var fighter: Fighter
 var _afterimage_t := 0.0
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if fighter == null:
 		return
 	scale.x = float(fighter.facing)
@@ -26,7 +26,21 @@ func _process(_delta: float) -> void:
 		m.a = 0.55 + 0.25 * sin(f.anim_time * 40.0)
 	modulate = m
 	z_index = 3 if not f.is_dead() else 1
+	_ghosts(delta)
 	queue_redraw()
+
+
+## Afterimages while dodging or dashing (spawned locally on every peer; nothing is networked).
+func _ghosts(delta: float) -> void:
+	var f := fighter
+	var dashing := f.state == Fighter.State.DODGE or (f.state == Fighter.State.ACTION and f.act_style == "dash")
+	if not dashing or f.world == null or f.is_dead():
+		_afterimage_t = 0.0
+		return
+	_afterimage_t -= delta
+	if _afterimage_t <= 0.0:
+		_afterimage_t = 0.045
+		Fx.spawn(f.world.entities, "ghost", f.global_position, {"color": f.data.color, "dir": float(f.facing)})
 
 
 func _limb(from: Vector2, angle: float, length: float, width: float, color: Color) -> Vector2:
@@ -78,6 +92,32 @@ func _draw() -> void:
 		Fighter.State.IDLE:
 			bob = sin(t * 3.0) * 1.5
 			arm_f = 0.35 + sin(t * 3.0) * 0.05
+			match d.id:   # per-class idle personality
+				"vanguard":     # planted, slow heavy breathing, shield-arm guard
+					bob = sin(t * 1.8) * 1.2
+					arm_b = 0.5
+				"duelist":      # bouncing on the toes, rapier flicks
+					bob = absf(sin(t * 6.0)) * -2.5
+					arm_f = 0.9 + sin(t * 6.0) * 0.18
+					leg_f = 0.25
+					leg_b = -0.25
+				"ranger":       # relaxed sway, bow hand low
+					rot = sin(t * 1.4) * 0.04
+					arm_f = 0.2
+				"gunslinger":   # cocky: gun hand twitch
+					arm_f = 0.7 + maxf(0.0, sin(t * 2.2)) * 0.5
+					arm_b = -0.2
+				"arcanist":     # hovers slightly
+					hip_lift = 4.0 + sin(t * 2.4) * 3.0
+					arm_f = 1.0 + sin(t * 2.4) * 0.15
+				"shadeweaver":  # drifts, cloak trembles
+					hip_lift = 2.0 + sin(t * 1.6) * 2.0
+					rot = sin(t * 1.1) * 0.05
+					arm_f = 0.45
+			if f.world != null and f.world.winner_team == f.team and not f.is_dead():   # victory pose
+				arm_f = 3.0 + sin(t * 9.0) * 0.25
+				arm_b = 2.8 - sin(t * 9.0) * 0.25
+				bob = absf(sin(t * 5.0)) * -6.0
 		Fighter.State.RUN:
 			var ph := t * 15.0
 			bob = absf(sin(ph)) * -3.0
@@ -218,8 +258,11 @@ func _draw() -> void:
 		draw_circle(Vector2(0, cy), 52.0 * s, Color(0.5, 0.75, 1.0, a))
 		draw_arc(Vector2(0, cy), 52.0 * s, 0.0, TAU, 28, Color(0.8, 0.95, 1.0, 0.9), 3.0)
 	if f.has_status("root"):
-		for i in 3:
-			draw_arc(Vector2(0, -8.0 - i * 12.0), 22.0, 0.0, TAU, 12, Color(0.65, 0.65, 0.85), 4.0)
+		for i in 3:   # binding chains: dark links with a violet glint, tightening
+			var rr := 24.0 - 2.0 * sin(t * 6.0 + i)
+			draw_arc(Vector2(0, -8.0 - i * 14.0), rr, 0.0, TAU, 12, OUT, 8.0)
+			draw_arc(Vector2(0, -8.0 - i * 14.0), rr, 0.0, TAU, 12, Color(0.62, 0.62, 0.8), 4.0)
+			draw_arc(Vector2(0, -8.0 - i * 14.0), rr, t * 3.0 + i, t * 3.0 + i + 1.0, 6, Color(0.8, 0.5, 1.0), 3.0)
 	if f.has_status("empower"):
 		draw_circle(Vector2(0, cy), 46.0 * s, Color(0.7, 0.4, 1.0, 0.18 + 0.1 * sin(t * 12.0)))
 	if f.enraged and state != Fighter.State.DEAD:

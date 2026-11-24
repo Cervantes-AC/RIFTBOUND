@@ -59,3 +59,23 @@
 
 ### Exact next development task
 Install the APK on two Android phones and run the manual checklist in `docs/TEST_PLAN.md` section B (airplane mode, force-stop persistence, two-phone online match), fix whatever the phones reveal, then start the Week-5 playtest using `docs/PLAYTEST_PLAN.md`.
+
+## 2026-11-25 - Milestone 2: visual identity and polish pass
+
+Audit and direction: `docs/DESIGN_AUDIT.md`. Gameplay, AI, save data and networking code were not changed
+(effects still go through `MatchManager.fx(kind,pos,data)`, so new effects replicate online automatically).
+
+* **Arenas** (`ArenaArt.gd`, rewritten): per-level layered scenery - forest ruins + background portal + glowing flora + fireflies;
+  cavern lava falls, basalt columns, magma-veined walls, heat shimmer; citadel aurora, ice castle, crystals, snow;
+  shadow realm Watcher eye, leaning ruins, unstable portals; sanctuary great Rift with lightning, glyph pillars, floating platforms.
+  Edge-only foreground node drawn above fighters. Hazard telegraphs: lava pit glow + warning signs, rift orbs show their next 1.2 s path.
+* **UI:** `PixelBox` bevelled button style (hover/pressed/disabled/focus ring), animated Rift-portal backdrop (`MenuBackdrop`),
+  `RiftLogo`, new main menu with the six required entries + campaign progress pips, standalone Character Selection flow.
+* **Characters:** per-class idle personality, victory pose, chain-link root visual, dash/dodge afterimages, `Portrait` art.
+* **Combat FX:** class-specific hit sparks (directional particles), slash crescents, muzzle stars, ground cracks on shockwaves, Arcanist casting runes.
+* **HUD:** class portraits with team frames, arena intro band at round start.
+* **Class select:** big stage preview, role, damage stat, skill descriptions, select pulse. **Level select:** per-arena landmarks, CLEAR badge. **Results:** portrait + confetti.
+* New test helpers: `tests/ArenaShots`, `tests/UIShots` (windowed screenshots).
+
+Verified: `CheckAll` 76 files OK, `SimTest` 186/186, `NetTest` host+join, `fail`, `badip` OK, `Screenshots` and `ScreenSizes` (1920x864, 1024x768, 854x480) reviewed by eye.
+Not verified: on a physical phone (performance of the richer scenery), two-phone online play, Android export of this build, audio (unchanged placeholders).

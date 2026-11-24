@@ -41,6 +41,36 @@ class StarRow extends Control:
 				draw_colored_polygon(pts, Color("#3a3050"))
 
 
+class PortraitBox extends Control:
+	var class_id := "vanguard"
+	var defeated := false
+
+	func _draw() -> void:
+		Portrait.draw(self, Library.get_class_data(class_id), Rect2(12, 12, 52, 52), defeated)
+
+
+## Gold/violet confetti raining over the victory screen (CPU particles, cheap on phones).
+func _confetti() -> void:
+	var p := CPUParticles2D.new()
+	p.position = Vector2(640, -10)
+	p.amount = 60
+	p.lifetime = 3.2
+	p.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	p.emission_rect_extents = Vector2(640, 4)
+	p.direction = Vector2.DOWN
+	p.spread = 12.0
+	p.gravity = Vector2(0, 90)
+	p.initial_velocity_min = 120.0
+	p.initial_velocity_max = 220.0
+	p.scale_amount_min = 4.0
+	p.scale_amount_max = 8.0
+	var g := Gradient.new()
+	g.set_color(0, Color("#ffd24a"))
+	g.set_color(1, Color(0.7, 0.3, 1.0, 0.0))
+	p.color_ramp = g
+	add_child(p)
+
+
 func _ready() -> void:
 	layer = 20
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -65,9 +95,20 @@ func show_result(r: Dictionary) -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 16)
 	panel.add_child(box)
+	var head := HBoxContainer.new()
+	head.alignment = BoxContainer.ALIGNMENT_CENTER
+	head.add_theme_constant_override("separation", 24)
+	box.add_child(head)
+	var pcard := PortraitBox.new()
+	pcard.class_id = SaveManager.player_class
+	pcard.defeated = outcome == "lose"
+	pcard.custom_minimum_size = Vector2(76, 76)
+	head.add_child(pcard)
 	var title_text := "VICTORY!" if outcome == "win" else ("DEFEAT" if outcome == "lose" else "DRAW")
 	var title := PixelUI.label(title_text, 52, accent, HORIZONTAL_ALIGNMENT_CENTER)
-	box.add_child(title)
+	head.add_child(title)
+	if outcome == "win":
+		_confetti()
 	box.add_child(PixelUI.label(str(r.get("level_name", "")), 16, PixelUI.C_TEXT, HORIZONTAL_ALIGNMENT_CENTER))
 	box.add_child(PixelUI.wrap_label(str(r.get("reason", "")), 16, PixelUI.C_DIM, HORIZONTAL_ALIGNMENT_CENTER))
 	if bool(r.get("campaign", false)):

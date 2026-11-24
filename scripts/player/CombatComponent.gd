@@ -229,6 +229,8 @@ func _launch(sk: SkillData) -> void:
 	var cast := style in ["orb", "bolt", "dark", "chain"]
 	AudioManager.play_sfx("magic" if cast else "shoot", 0.9 + randf() * 0.2)
 	_fx("muzzle", origin, {"color": sk.color, "dir": f.facing})
+	if cast:
+		_fx("rune", f.global_position, {"color": sk.color, "radius": 56.0})
 
 
 func _fire_zone(sk: SkillData, f: Fighter) -> float:

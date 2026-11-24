@@ -148,7 +148,7 @@ func _build_ui() -> void:
 	touch = TouchControls.new()
 	tl.add_child(touch)
 	touch.fighter = fighter_by_slot(local_slot)
-	hud.show_banner("%s\n%s" % [config["level_name"], config["objective"]], 5.0)
+	hud.show_intro(str(config["level_name"]), str(config["objective"]), arena.theme["glow"])
 	if config["mode"] == "campaign":
 		var lose_text: String = config.get("lose_text", "")
 		hud.show_hint(lose_text, 5.0)
@@ -381,9 +381,14 @@ func explode_at(spec: Dictionary, pos: Vector2) -> void:
 				on_hit_landed(attacker, t, h)
 
 
-func on_hit_landed(_attacker, target: Fighter, hit: Dictionary) -> void:
-	fx("hit", target.center(), {"color": hit.get("color", Color.WHITE)})
+func on_hit_landed(attacker, target: Fighter, hit: Dictionary) -> void:
 	var heavy := float(hit.get("dmg", 0.0)) >= 14.0
+	var cls := ""
+	var dir := 0.0
+	if attacker != null and is_instance_valid(attacker):
+		cls = attacker.data.id
+		dir = signf(target.global_position.x - attacker.global_position.x)
+	fx("hit", target.center(), {"color": hit.get("color", Color.WHITE), "cls": cls, "dir": dir, "heavy": heavy})
 	AudioManager.play_sfx("hit_heavy" if heavy else "hit", 0.9 + randf() * 0.2)
 	if heavy:
 		shake(6.0)

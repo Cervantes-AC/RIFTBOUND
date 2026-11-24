@@ -38,12 +38,12 @@ class Bars extends Control:
 		for team in 2:
 			var members: Array = world.fighters.filter(func(x): return x.team == team)
 			var count := members.size()
-			var w := 430.0 if count == 1 else 330.0
+			var w := 360.0 if count == 1 else 300.0
 			var h := 30.0 if count == 1 else 22.0
 			for i in count:
 				var f: Fighter = members[i]
 				var y := 22.0 + i * (h + 38.0)
-				var x := margin + inset.x if team == 0 else size.x - margin - inset.y - w
+				var x := margin + inset.x + 64.0 if team == 0 else size.x - margin - inset.y - w - 64.0
 				_draw_bar(f, Vector2(x, y), Vector2(w, h), team == 1)
 
 	func _draw_bar(f: Fighter, pos: Vector2, sz: Vector2, mirrored: bool) -> void:
@@ -70,6 +70,10 @@ class Bars extends Control:
 			draw_rect(Rect2(pos.x, pos.y, trail_w, sz.y), Color(1, 1, 1, 0.85))
 			draw_rect(Rect2(pos.x, pos.y, fill_w, sz.y), col)
 			draw_rect(Rect2(pos.x, pos.y, fill_w, sz.y * 0.35), col.lightened(0.35))
+		# portrait (class art) with team-colour frame
+		var pr := Rect2(pos.x - 62.0, pos.y - 2.0, 52, 52) if not mirrored else Rect2(pos.x + sz.x + 10.0, pos.y - 2.0, 52, 52)
+		draw_rect(pr.grow(6.0), Color("#ffd24a") if local else (Color("#4a8aff") if not mirrored else Color("#e8484f")))
+		Portrait.draw(self, f.data, pr, f.is_dead())
 		# class colour chip + name
 		var chip := Rect2(pos.x, pos.y + sz.y + 8.0, 16, 16)
 		if mirrored:
@@ -150,6 +154,40 @@ func show_center(text: String, seconds: float = 0.9, color: Color = PixelUI.C_GO
 	_center_tween.tween_property(center_label, "scale", Vector2.ONE, 0.18).set_ease(Tween.EASE_OUT)
 	_center_tween.tween_interval(maxf(seconds - 0.4, 0.05))
 	_center_tween.tween_property(center_label, "modulate:a", 0.0, 0.25)
+
+
+## Round-start presentation: a dark band sweeps in with the arena name and objective, then out.
+func show_intro(title: String, subtitle: String, accent: Color) -> void:
+	var band := ColorRect.new()
+	band.color = Color(0.03, 0.02, 0.08, 0.82)
+	band.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	band.offset_top = 250.0
+	band.offset_bottom = 370.0
+	band.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(band)
+	for edge_y in [0.0, 116.0]:
+		var e := ColorRect.new()
+		e.color = accent
+		e.set_anchors_preset(Control.PRESET_TOP_WIDE)
+		e.offset_top = edge_y
+		e.offset_bottom = edge_y + 4.0
+		band.add_child(e)
+	var t := PixelUI.label(title.to_upper(), 36, accent, HORIZONTAL_ALIGNMENT_CENTER)
+	t.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	t.offset_top = 18.0
+	t.offset_bottom = 62.0
+	band.add_child(t)
+	var s := PixelUI.label(subtitle, 16, PixelUI.C_TEXT, HORIZONTAL_ALIGNMENT_CENTER)
+	s.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	s.offset_top = 74.0
+	s.offset_bottom = 98.0
+	band.add_child(s)
+	band.position.x = -1400.0
+	var tw := create_tween()
+	tw.tween_property(band, "position:x", 0.0, 0.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(1.8)
+	tw.tween_property(band, "position:x", 1400.0, 0.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tw.tween_callback(band.queue_free)
 
 
 func show_banner(text: String, seconds: float = 4.0) -> void:

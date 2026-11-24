@@ -104,4 +104,4 @@ func _refresh() -> void:
 
 func _on_back() -> void:
 	AudioManager.play_sfx("back")
-	UIManager.go("res://scenes/ui/ModeSelect.tscn")
+	UIManager.go("res://scenes/ui/MainMenu.tscn")

@@ -15,7 +15,9 @@ func _ready() -> void:
 	m.add_child(v)
 	v.add_child(PixelUI.label("CHOOSE YOUR CLASS", 32, PixelUI.C_GOLD, HORIZONTAL_ALIGNMENT_CENTER))
 	var sub := ""
-	if _flow["type"] == "campaign":
+	if _flow["type"] == "browse":
+		sub = "Your fighter is used in every mode. Tap a class to preview it."
+	elif _flow["type"] == "campaign":
 		var lvl := Library.get_level(int(_flow["level_id"]))
 		sub = "Level %d - %s: %s" % [lvl["id"], lvl["name"], lvl["objective"]]
 	else:
@@ -36,7 +38,7 @@ func _ready() -> void:
 	var back := PixelUI.button("BACK", PixelUI.C_PANEL_LIGHT, 18, Vector2(220, 64))
 	back.pressed.connect(_on_back)
 	row.add_child(back)
-	var go := PixelUI.button("FIGHT!", Color("#2f7a4a"), 22, Vector2(300, 64))
+	var go := PixelUI.button("SELECT" if _flow["type"] == "browse" else "FIGHT!", Color("#2f7a4a"), 22, Vector2(300, 64))
 	go.pressed.connect(_on_fight)
 	row.add_child(go)
 	UIManager.back_requested.connect(_on_back)
@@ -52,6 +54,10 @@ func _on_fight() -> void:
 	var cls := _picker.selected
 	GameState.selected_class = cls
 	SaveManager.set_setting("player_class", cls)
+	if _flow["type"] == "browse":
+		UIManager.toast("%s selected!" % Library.get_class_data(cls).display_name)
+		UIManager.go("res://scenes/ui/MainMenu.tscn")
+		return
 	if _flow["type"] == "campaign":
 		GameState.start_campaign_level(int(_flow["level_id"]), cls)
 	else:
@@ -60,7 +66,9 @@ func _on_fight() -> void:
 
 func _on_back() -> void:
 	AudioManager.play_sfx("back")
-	if _flow["type"] == "campaign":
+	if _flow["type"] == "browse":
+		UIManager.go("res://scenes/ui/MainMenu.tscn")
+	elif _flow["type"] == "campaign":
 		UIManager.go("res://scenes/ui/LevelSelect.tscn")
 	else:
 		UIManager.go("res://scenes/ui/MatchModeSelect.tscn")

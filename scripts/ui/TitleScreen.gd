@@ -3,11 +3,11 @@ extends Control
 
 var _tap: Label
 var _t := 0.0
-var _logo: Label
+var _logo: Control
 
 
 func _ready() -> void:
-	PixelUI.screen(self)
+	PixelUI.screen(self, 28, true)
 	AudioManager.play_music("menu")
 	var left := ClassPreview.new()
 	left.position = Vector2(400, 610)
@@ -19,24 +19,16 @@ func _ready() -> void:
 	right.scale = Vector2(2.4, 2.4)
 	add_child(right)
 	right.show_class("arcanist", -1)
-	_logo = PixelUI.label("RIFTBOUND", 88, PixelUI.C_GOLD, HORIZONTAL_ALIGNMENT_CENTER)
-	_logo.add_theme_constant_override("outline_size", 14)
-	_logo.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_logo.position = Vector2(-500, 90)
-	_logo.custom_minimum_size = Vector2(1000, 0)
-	_logo.size = Vector2(1000, 110)
-	_logo.pivot_offset = Vector2(500, 55)
-	add_child(_logo)
-	var sub := PixelUI.label("ARENA CLASH", 34, PixelUI.C_RIFT, HORIZONTAL_ALIGNMENT_CENTER)
-	sub.add_theme_constant_override("outline_size", 8)
-	sub.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	sub.position = Vector2(-400, 215)
-	sub.custom_minimum_size = Vector2(800, 0)
-	sub.size = Vector2(800, 50)
-	add_child(sub)
+	var logo := RiftLogo.new()
+	logo.font_size = 88
+	logo.sub_size = 30
+	logo.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	logo.position = Vector2(-410, 50)
+	add_child(logo)
+	_logo = logo
 	_tap = PixelUI.label("TAP TO START", 26, PixelUI.C_TEXT, HORIZONTAL_ALIGNMENT_CENTER)
 	_tap.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	_tap.position = Vector2(-400, 330)
+	_tap.position = Vector2(-400, 400)
 	_tap.custom_minimum_size = Vector2(800, 0)
 	_tap.size = Vector2(800, 40)
 	add_child(_tap)
@@ -53,7 +45,6 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_t += delta
 	_tap.modulate.a = 0.35 + 0.65 * absf(sin(_t * 2.4))
-	_logo.scale = Vector2.ONE * (1.0 + 0.012 * sin(_t * 2.0))
 
 
 func _gui_input(event: InputEvent) -> void:

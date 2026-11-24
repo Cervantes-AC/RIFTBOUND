@@ -46,13 +46,13 @@ static func style_button(b: Button, color: Color = C_PANEL_LIGHT, font_size: int
 	b.add_theme_color_override("font_disabled_color", Color(0.5, 0.5, 0.58))
 	b.add_theme_constant_override("outline_size", 4)
 	b.add_theme_color_override("font_outline_color", C_BORDER)
-	b.add_theme_stylebox_override("normal", box(color, C_EDGE))
-	b.add_theme_stylebox_override("hover", box(color.lightened(0.18), C_GOLD))
-	var pressed := box(color.darkened(0.2), C_GOLD, 4, 0)
-	pressed.content_margin_top = 14
-	b.add_theme_stylebox_override("pressed", pressed)
-	b.add_theme_stylebox_override("disabled", box(color.darkened(0.55), Color(0.2, 0.2, 0.25)))
-	b.add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	b.add_theme_stylebox_override("normal", PixelBox.make(color, C_EDGE))
+	b.add_theme_stylebox_override("hover", PixelBox.make(color.lightened(0.16), C_GOLD))
+	b.add_theme_stylebox_override("pressed", PixelBox.make(color.darkened(0.2), C_GOLD, true))
+	b.add_theme_stylebox_override("disabled", PixelBox.make(color.darkened(0.55), Color(0.2, 0.2, 0.25)))
+	var fb := PixelBox.make(Color(0, 0, 0, 0), C_GOLD)
+	fb.ring_only = true
+	b.add_theme_stylebox_override("focus", fb)
 	b.focus_mode = Control.FOCUS_NONE
 	b.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
@@ -92,9 +92,11 @@ static func wrap_label(text: String, size: int = 16, color: Color = C_TEXT, alig
 
 
 ## Full-rect screen root with the animated rift backdrop; returns the content margin container.
-static func screen(owner_control: Control, margin_v: int = 28) -> MarginContainer:
+static func screen(owner_control: Control, margin_v: int = 28, hero: bool = false) -> MarginContainer:
 	owner_control.set_anchors_preset(Control.PRESET_FULL_RECT)
 	var bd := MenuBackdrop.new()
+	if hero:
+		bd.intensity = 1.0
 	owner_control.add_child(bd)
 	var m := MarginContainer.new()
 	m.set_anchors_preset(Control.PRESET_FULL_RECT)
