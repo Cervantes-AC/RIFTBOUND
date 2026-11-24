@@ -7,6 +7,7 @@ signal restart_pressed
 signal quit_pressed
 
 var allow_restart := true
+var guide_class := "vanguard"
 var _sound_btn: Button
 var _music_btn: Button
 
@@ -31,6 +32,11 @@ func _ready() -> void:
 	var resume := PixelUI.button("RESUME", Color("#2f7a4a"), 20, Vector2(0, 66))
 	resume.pressed.connect(func(): resume_pressed.emit())
 	box.add_child(resume)
+	var moves := PixelUI.button("MOVES & GUIDE", Color("#3a5aa8"), 18, Vector2(0, 60))
+	moves.pressed.connect(func():
+		AudioManager.play_sfx("click")
+		MoveGuide.open(self, guide_class))
+	box.add_child(moves)
 	if allow_restart:
 		var restart := PixelUI.button("RESTART", PixelUI.C_PANEL_LIGHT, 20, Vector2(0, 66))
 		restart.pressed.connect(func(): restart_pressed.emit())

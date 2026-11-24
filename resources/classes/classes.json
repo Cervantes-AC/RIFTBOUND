@@ -1,50 +1,134 @@
 {
   "vanguard": {
-    "name": "Vanguard", "archetype": "Melee",
-    "desc": "Durable frontline fighter. Crushes enemies up close and shrugs off damage.",
+    "name": "Vanguard", "title": "The Unbroken Wall", "archetype": "Melee", "role": "Tank / Protector", "difficulty": 1,
+    "desc": "Durable frontline fighter. Soaks hits, then repays them with interest.",
+    "lore": "Last captain of a sunken garrison, Brannoch holds the line because nobody else will. Every blow he endures is a debt the enemy will pay.",
+    "mech": "vanguard", "mech_name": "BULWARK",
+    "mech_desc": "Taking damage charges the Bulwark meter. Spend it with Retaliate for a counter-strike that grows with the meter.",
+    "passive_name": "Stalwart", "passive_desc": "Knockback taken is reduced by 25%. At 50+ Bulwark, damage taken is reduced by 10%.",
+    "strengths": "Survives pressure, protects allies, huge payoff for being hit.", "weaknesses": "Slow. Ranged enemies kite him. Retaliate has a visible wind-up.",
+    "strategy": "Walk forward, let Bulwark build, then Retaliate. Save the ultimate to shield the whole team.",
     "color": "#3d7dd8", "accent": "#c9d4e8", "hair": "#6b4a2e", "weapon": "sword_shield",
     "hp": 175, "speed": 215, "jump": 650, "jumps": 1, "dodge_cd": 1.0, "size": 1.12,
-    "basic": "vanguard_basic",
-    "skills": ["shield_rush", "ground_breaker", "iron_fortress"]
+    "basic": "vanguard_basic", "mobility": "shield_rush",
+    "skills": ["ground_breaker", "retaliate", "bastion"]
   },
   "duelist": {
-    "name": "Duelist", "archetype": "Melee",
-    "desc": "Fast close-range fencer with a double jump and lightning combos.",
+    "name": "Duelist", "title": "Edge of the Moment", "archetype": "Melee", "role": "Skirmisher / Combo", "difficulty": 3,
+    "desc": "Fast fencer who snowballs through unbroken combos.",
+    "lore": "Ilsa Verrane fought a hundred duels for coin and lost none. She never stops moving, because stillness is how duellists die.",
+    "mech": "duelist", "mech_name": "MOMENTUM",
+    "mech_desc": "Every hit adds a Momentum stack (max 5, +5% damage and +3% speed each). Taking a hit halves them.",
+    "passive_name": "Riposte Footwork", "passive_desc": "Each hit you land shortens the Sidestep cooldown by 0.25s.",
+    "strengths": "Highest burst with stacks, great mobility, can cancel attacks into Sidestep.", "weaknesses": "Low health. Loses everything if hit while stacking.",
+    "strategy": "Thrust, Quick Slash, Sidestep out. At 3+ stacks Phantom Step refunds Quick Slash. Ultimate is a guaranteed-feeling finisher - use it on a staggered target.",
     "color": "#d8453d", "accent": "#f2d27a", "hair": "#2b2b3a", "weapon": "rapier",
     "hp": 145, "speed": 310, "jump": 700, "jumps": 2, "dodge_cd": 0.7, "size": 1.0,
-    "basic": "duelist_basic",
-    "skills": ["quick_slash", "blade_spin", "phantom_step"]
+    "basic": "duelist_basic", "mobility": "sidestep",
+    "skills": ["quick_slash", "phantom_step", "thousand_cuts"]
   },
   "ranger": {
-    "name": "Ranger", "archetype": "Ranged",
-    "desc": "Bow-based marksman. Pins enemies down from a distance.",
+    "name": "Ranger", "title": "Patient Hunter", "archetype": "Ranged", "role": "Marksman / Zoner", "difficulty": 3,
+    "desc": "Bow marksman who rewards standing your ground and picking a target.",
+    "lore": "Sel of the Hollow Wood has never missed a shot she took her time on. She marks her quarry once, then waits.",
+    "mech": "ranger", "mech_name": "HUNTER'S MARK",
+    "mech_desc": "Hunter's Mark tags an enemy for 6s: all your damage to them is +25%. Marked hits also charge your ultimate faster.",
+    "passive_name": "Steady Aim", "passive_desc": "Standing still for 0.7s lines up the next arrow for +50% damage.",
+    "strengths": "Longest range, strong zoning, big damage on marked or still targets.", "weaknesses": "Fragile. Moving cancels Steady Aim. Slow wind-ups.",
+    "strategy": "Mark, plant your feet, fire. Dash back when they close in.",
     "color": "#3fae5a", "accent": "#e8d9a0", "hair": "#8a5a2a", "weapon": "bow",
     "hp": 95, "speed": 245, "jump": 690, "jumps": 1, "dodge_cd": 0.9, "size": 1.0,
-    "basic": "ranger_basic",
-    "skills": ["piercing_shot", "arrow_rain", "shadow_dash"]
+    "basic": "ranger_basic", "mobility": "shadow_dash",
+    "skills": ["piercing_shot", "hunters_mark", "arrow_storm"]
   },
   "gunslinger": {
-    "name": "Gunslinger", "archetype": "Ranged",
-    "desc": "Rapid projectile fighter. Bursts, blasts and rolls out of danger.",
+    "name": "Gunslinger", "title": "Six Chambers", "archetype": "Ranged", "role": "Pressure / Burst", "difficulty": 4,
+    "desc": "Cylinder-fed shooter who must manage ammunition to keep up the pressure.",
+    "lore": "Dust Calloway has exactly six bullets and an opinion about every one. Run dry and the legend ends.",
+    "mech": "gunslinger", "mech_name": "AMMO",
+    "mech_desc": "Six rounds. Pistol costs 1, Quick Burst 3, Explosive Round 2. Empty = 1.6s forced reload; otherwise rounds slowly refill when you stop shooting.",
+    "passive_name": "Quick Draw", "passive_desc": "Tactical Roll reloads 2 rounds and grants a short speed boost.",
+    "strengths": "Constant pressure, three firing patterns, rolling reload.", "weaknesses": "Dry chamber leaves him helpless. Low health.",
+    "strategy": "Mix single shots with a burst, roll to reload, finish with an Explosive Round. Dead Eye ignores the ammo limit.",
     "color": "#e0902f", "accent": "#5b3a22", "hair": "#d8d0c0", "weapon": "pistol",
     "hp": 100, "speed": 260, "jump": 690, "jumps": 1, "dodge_cd": 0.8, "size": 1.0,
-    "basic": "gunslinger_basic",
-    "skills": ["quick_burst", "explosive_round", "tactical_roll"]
+    "basic": "gunslinger_basic", "mobility": "tactical_roll",
+    "skills": ["quick_burst", "explosive_round", "dead_eye"]
   },
   "arcanist": {
-    "name": "Arcanist", "archetype": "Magic",
-    "desc": "Elemental caster. Freezes the arena and calls down meteors.",
+    "name": "Arcanist", "title": "Weaver of Elements", "archetype": "Magic", "role": "Caster / Area Control", "difficulty": 4,
+    "desc": "Elemental caster who switches element to combine effects.",
+    "lore": "Orsolya burned her academy library to learn what the books were afraid of. She now carries three flames in one staff.",
+    "mech": "arcanist", "mech_name": "ELEMENTS",
+    "mech_desc": "Attune cycles Fire, Frost and Storm. Spells use mana. Fire on a slowed target SHATTERS (+50%). Storm chains to a nearby enemy and stuns a slowed target.",
+    "passive_name": "Arcane Reserve", "passive_desc": "Mana regenerates twice as fast while you stand still.",
+    "strengths": "Flexible damage, chain and slow control, devastating ultimate.", "weaknesses": "Low health, mana runs out, must plan the element order.",
+    "strategy": "Frost to slow, Attune, Fire to shatter. Storm when two enemies stand close together.",
     "color": "#9a55d8", "accent": "#7fd8ff", "hair": "#e8e8f8", "weapon": "staff",
     "hp": 95, "speed": 225, "jump": 680, "jumps": 1, "dodge_cd": 1.0, "size": 1.0,
-    "basic": "arcanist_basic",
-    "skills": ["arcane_bolt", "frost_nova", "meteor_fall"]
+    "basic": "arcanist_basic", "mobility": "arcane_slip",
+    "skills": ["arcane_bolt", "attune", "cataclysm"]
   },
   "shadeweaver": {
-    "name": "Shadeweaver", "archetype": "Magic",
-    "desc": "Shadow controller. Binds enemies and blinks through the Rift.",
+    "name": "Shadeweaver", "title": "Hollow Trickster", "archetype": "Magic", "role": "Trickster / Control", "difficulty": 5,
+    "desc": "Shadow controller who never stands where the enemy thinks.",
+    "lore": "Nobody remembers Vesh's face; the Rift took it as payment. What remains is a cloak, a scythe and a talent for being elsewhere.",
+    "mech": "shadeweaver", "mech_name": "SHADOW",
+    "mech_desc": "Shadow builds while you move and hit. Spend it on Binding Chains and Shadow Echo: teleport forward leaving an echo, press again within 3s to swap back.",
+    "passive_name": "Umbral Drift", "passive_desc": "+8% move speed, and basic attacks deal up to +40% damage as Shadow fills. Rooted enemies become immune to roots for 2.5s.",
+    "strengths": "Slippery, strong control, great reposition options.", "weaknesses": "Needs movement to fuel Shadow. Modest raw damage. Hardest to play.",
+    "strategy": "Keep moving, chain a target, Echo behind them, Eclipse to lock the whole group briefly.",
     "color": "#4b3a8a", "accent": "#d84ad0", "hair": "#18121f", "weapon": "scythe",
-    "hp": 115, "speed": 250, "jump": 690, "jumps": 1, "dodge_cd": 0.9, "size": 1.0,
-    "basic": "shadeweaver_basic",
-    "skills": ["shadow_bolt", "binding_chains", "rift_blink"]
+    "hp": 135, "speed": 255, "jump": 690, "jumps": 1, "dodge_cd": 0.9, "size": 1.0,
+    "basic": "shadeweaver_basic", "mobility": "rift_blink",
+    "skills": ["binding_chains", "shadow_echo", "eclipse"]
+  },
+  "riftblade": {
+    "planned": true, "name": "Riftblade", "title": "Seam-Walker", "archetype": "Melee", "role": "Assassin / Repositioner", "difficulty": 4,
+    "desc": "Dimensional swordsman.", "lore": "Cuts doors in the air and walks through them.",
+    "mech": "", "mech_name": "RIFT MARKERS", "mech_desc": "Place two linked rift gates; stepping through one exits the other with a free slash from behind.",
+    "passive_name": "Phase Edge", "passive_desc": "Attacks from behind deal bonus damage.",
+    "strengths": "Unexpected angles.", "weaknesses": "Needs setup time.", "strategy": "Planned.",
+    "color": "#33c9c0", "accent": "#e8ffff", "hair": "#10202a", "weapon": "rapier", "hp": 130, "speed": 280, "jump": 700, "jumps": 2, "dodge_cd": 0.9, "size": 1.0, "skills": []
+  },
+  "warden": {
+    "planned": true, "name": "Warden", "title": "Keeper of the Line", "archetype": "Melee", "role": "Controller / Support", "difficulty": 2,
+    "desc": "Defensive battlefield controller.", "lore": "Plants wards where friends will stand.",
+    "mech": "", "mech_name": "WARDS", "mech_desc": "Place defensive zones that reduce or redirect incoming damage for allies inside.",
+    "passive_name": "Guardian Link", "passive_desc": "Allies near the Warden take less damage.",
+    "strengths": "Team protection.", "weaknesses": "Low personal damage.", "strategy": "Planned.",
+    "color": "#d8b04a", "accent": "#fff2c0", "hair": "#3a2a18", "weapon": "sword_shield", "hp": 165, "speed": 220, "jump": 650, "jumps": 1, "dodge_cd": 1.0, "size": 1.1, "skills": []
+  },
+  "stormcaller": {
+    "planned": true, "name": "Stormcaller", "title": "Thunder's Voice", "archetype": "Magic", "role": "Chain Caster", "difficulty": 3,
+    "desc": "Lightning specialist.", "lore": "Speaks the language of the storm.",
+    "mech": "", "mech_name": "CHARGE", "mech_desc": "Build electrical charge; discharge it as chain lightning that jumps between enemies.",
+    "passive_name": "Static Field", "passive_desc": "Standing near enemies builds charge.",
+    "strengths": "Groups of enemies.", "weaknesses": "Weak 1v1 when uncharged.", "strategy": "Planned.",
+    "color": "#f2e04a", "accent": "#7fb8ff", "hair": "#e8e8f8", "weapon": "staff", "hp": 100, "speed": 235, "jump": 680, "jumps": 1, "dodge_cd": 0.9, "size": 1.0, "skills": []
+  },
+  "reaper": {
+    "planned": true, "name": "Reaper", "title": "Harvest Bound", "archetype": "Melee", "role": "Bruiser / Sustain", "difficulty": 3,
+    "desc": "Life-draining scythe fighter.", "lore": "Collects what the battlefield leaves behind.",
+    "mech": "", "mech_name": "SOULS", "mech_desc": "Gain limited soul energy; convert it to a capped heal or a burst of damage.",
+    "passive_name": "Last Rites", "passive_desc": "Defeated enemies release souls.",
+    "strengths": "Sustain in long fights.", "weaknesses": "Healing is capped.", "strategy": "Planned.",
+    "color": "#8a2a3a", "accent": "#ffd0d8", "hair": "#d8d0c0", "weapon": "scythe", "hp": 150, "speed": 240, "jump": 670, "jumps": 1, "dodge_cd": 1.0, "size": 1.05, "skills": []
+  },
+  "chronomancer": {
+    "planned": true, "name": "Chronomancer", "title": "Borrowed Seconds", "archetype": "Magic", "role": "Tempo Controller", "difficulty": 5,
+    "desc": "Time-bending tactician.", "lore": "Spends tomorrow's seconds today.",
+    "mech": "", "mech_name": "TEMPO", "mech_desc": "Slow chosen enemies or projectiles using time energy; rewind a short step of movement. Deterministic, never unlimited.",
+    "passive_name": "Borrowed Time", "passive_desc": "Cooldowns tick slightly faster.",
+    "strengths": "Tempo control.", "weaknesses": "Complex.", "strategy": "Planned.",
+    "color": "#6ad8c0", "accent": "#fff2a0", "hair": "#2a3a4a", "weapon": "staff", "hp": 105, "speed": 235, "jump": 680, "jumps": 1, "dodge_cd": 0.9, "size": 1.0, "skills": []
+  },
+  "beastbound": {
+    "planned": true, "name": "Beastbound", "title": "Pack Mother", "archetype": "Melee", "role": "Summoner / Brawler", "difficulty": 3,
+    "desc": "Fights alongside a wolf companion.", "lore": "The wolf follows; the wolf bites; the wolf is family.",
+    "mech": "", "mech_name": "COMPANION", "mech_desc": "A companion wolf attacks on command for a limited duration.",
+    "passive_name": "Pack Bond", "passive_desc": "Companion shares a little of your damage bonus.",
+    "strengths": "Two-front pressure.", "weaknesses": "Companion can be killed.", "strategy": "Planned.",
+    "color": "#8a6a3a", "accent": "#e8d0a0", "hair": "#4a3018", "weapon": "sword_shield", "hp": 140, "speed": 250, "jump": 680, "jumps": 1, "dodge_cd": 0.9, "size": 1.05, "skills": []
   }
 }

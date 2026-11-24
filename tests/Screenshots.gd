@@ -2,7 +2,7 @@ extends Node
 ## Visual smoke test: renders each screen/arena in a real window and saves PNGs to user://shots/.
 ## Run (not headless): godot --path . res://tests/Screenshots.tscn
 
-const UI_SCENES := ["TitleScreen", "MainMenu", "ModeSelect", "MatchModeSelect", "LevelSelect", "ClassSelect", "OnlineLobby", "Settings", "Credits"]
+const UI_SCENES := ["TitleScreen", "MainMenu", "ModeSelect", "MatchModeSelect", "LevelSelect", "ClassSelect", "OnlineLobby", "Settings", "ControlEditor", "Credits"]
 
 
 func shot(name: String) -> void:

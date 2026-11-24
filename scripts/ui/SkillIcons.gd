@@ -51,6 +51,30 @@ static func draw(ci: CanvasItem, icon: String, c: Vector2, r: float, col: Color)
 		"chain":
 			ci.draw_arc(c + Vector2(-k * 0.4, 0), k * 0.5, 0, TAU, 10, col, r * 0.14)
 			ci.draw_arc(c + Vector2(k * 0.4, 0), k * 0.5, 0, TAU, 10, col, r * 0.14)
+		"counter":
+			ci.draw_arc(c, k * 0.95, 0.0, TAU, 16, col, r * 0.2)
+			ci.draw_line(c + Vector2(-k * 0.6, -k * 0.6), c + Vector2(k * 0.6, k * 0.6), col, r * 0.2)
+			ci.draw_line(c + Vector2(k * 0.6, -k * 0.6), c + Vector2(-k * 0.6, k * 0.6), col, r * 0.2)
+		"mark":
+			ci.draw_arc(c, k * 0.7, 0.0, TAU, 14, col, r * 0.14)
+			for d in [Vector2.LEFT, Vector2.RIGHT, Vector2.UP, Vector2.DOWN]:
+				ci.draw_line(c + d * k * 0.45, c + d * k * 1.15, col, r * 0.14)
+			ci.draw_circle(c, k * 0.14, col)
+		"eye":
+			ci.draw_colored_polygon(PackedVector2Array([c + Vector2(-k * 1.1, 0), c + Vector2(0, -k * 0.7), c + Vector2(k * 1.1, 0), c + Vector2(0, k * 0.7)]), col)
+			ci.draw_circle(c, k * 0.38, dark)
+			ci.draw_circle(c, k * 0.14, Color.WHITE)
+		"attune":
+			ci.draw_circle(c + Vector2(0, -k * 0.55), k * 0.38, Color("#ff7a3a"))
+			ci.draw_circle(c + Vector2(-k * 0.55, k * 0.4), k * 0.38, Color("#7fe0ff"))
+			ci.draw_circle(c + Vector2(k * 0.55, k * 0.4), k * 0.38, Color("#c8a0ff"))
+		"echo":
+			ci.draw_rect(Rect2(c.x - k * 0.9, c.y - k * 0.7, k * 0.8, k * 1.5), Color(col, 0.45))
+			ci.draw_rect(Rect2(c.x + k * 0.1, c.y - k * 0.7, k * 0.8, k * 1.5), col)
+		"eclipse":
+			ci.draw_circle(c, k * 0.8, dark)
+			ci.draw_arc(c, k * 1.0, 0.0, TAU, 20, col, r * 0.18)
+			ci.draw_arc(c, k * 1.3, 0.6, 2.4, 10, col, r * 0.1)
 		"jump":
 			ci.draw_polyline(PackedVector2Array([c + Vector2(-k, k * 0.2), c + Vector2(0, -k * 0.8), c + Vector2(k, k * 0.2)]), col, r * 0.22)
 			ci.draw_line(c + Vector2(0, -k * 0.6), c + Vector2(0, k * 0.9), col, r * 0.2)

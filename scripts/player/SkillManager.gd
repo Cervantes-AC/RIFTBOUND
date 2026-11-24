@@ -1,11 +1,11 @@
 class_name SkillManager
 extends Node
-## Cooldown bookkeeping for the basic attack (slot 0) and three skills (slots 1-3).
+## Cooldown bookkeeping for the basic (0), special (1), signature (2), ultimate (3) and mobility (4).
 
-const SLOTS := 4
+const SLOTS := 5
 
-var cooldown_left: Array[float] = [0.0, 0.0, 0.0, 0.0]
-var cooldown_total: Array[float] = [0.0, 0.0, 0.0, 0.0]
+var cooldown_left: Array[float] = [0.0, 0.0, 0.0, 0.0, 0.0]
+var cooldown_total: Array[float] = [0.0, 0.0, 0.0, 0.0, 0.0]
 
 
 func is_ready(slot: int) -> bool:

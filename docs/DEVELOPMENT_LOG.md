@@ -79,3 +79,23 @@ Audit and direction: `docs/DESIGN_AUDIT.md`. Gameplay, AI, save data and network
 
 Verified: `CheckAll` 76 files OK, `SimTest` 186/186, `NetTest` host+join, `fail`, `badip` OK, `Screenshots` and `ScreenSizes` (1920x864, 1024x768, 854x480) reviewed by eye.
 Not verified: on a physical phone (performance of the richer scenery), two-phone online play, Android export of this build, audio (unchanged placeholders).
+
+## 2026-11-25 - Milestone 3: characters, abilities and controls
+
+Design and honest scope: `docs/COMBAT_REDESIGN.md`. Six fighters are playable and tested; six more are designed and
+shown as locked "PLANNED" entries (not selectable).
+
+* **Framework:** five ability slots (basic, special, signature, ultimate, mobility), ultimate meter, per-class `Mechanic`
+  (Bulwark, Momentum, Hunter's Mark + Steady Aim, Ammo, Elements, Shadow + Echo), passives, new skill kinds
+  (retaliate, bastion, flurry, attune, echo, fan-fire), telegraph rings, ultimate effects.
+* **Input:** ability buffer, recovery cancels (mobility always; special/signature after a connected basic), dodge -> counter,
+  combo counter, stun anti-lock, root immunity.
+* **Controls:** `ControlLayout` presets (standard/compact), `TouchControls` rewrite (size, opacity, stick sensitivity, debounce),
+  `ControlEditor`, settings persisted in `user://save.cfg`.
+* **UI:** 12-card roster with locked planned fighters, move guide (select + pause), training room, HUD resource/ultimate bars and combo counter,
+  result screen best-combo line.
+* **Multiplayer:** snapshot extended (cooldown slot 4, ultimate, combo, 3 mechanic values); effects use the existing channel.
+* **AI:** uses ultimates/mobility, range decided by the basic attack (found by balance sweep: Shadeweaver AI stayed out of melee range).
+* **Tests:** new `tests/MechTest` (80 checks); `SimTest` now 204; `Balance` takes `ROUNDS=n` from the environment.
+* Bugs found by tests/runs: TouchControls had size 0 (anchor preset inside `_ready`), SimTest assumed no resource gates,
+  Shadeweaver 0% win rate (AI range logic + no baseline Shadow).

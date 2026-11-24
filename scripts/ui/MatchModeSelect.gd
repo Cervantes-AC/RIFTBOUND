@@ -50,6 +50,14 @@ func _ready() -> void:
 	var spacer := Control.new()
 	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	v.add_child(spacer)
+	var train := PixelUI.button("TRAINING ROOM - practise moves, combos and ultimates", Color("#7a3a9a"), 16, Vector2(0, 60))
+	train.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	train.custom_minimum_size = Vector2(760, 60)
+	train.pressed.connect(func():
+		AudioManager.play_sfx("click")
+		GameState.pending_flow = {"type": "training", "arena": GameState.ARENA_IDS[_arena_index]}
+		UIManager.go("res://scenes/ui/ClassSelect.tscn"))
+	v.add_child(train)
 	var back := PixelUI.button("BACK", PixelUI.C_PANEL_LIGHT, 18, Vector2(220, 60))
 	back.pressed.connect(_on_back)
 	back.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

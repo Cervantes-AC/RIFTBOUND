@@ -121,6 +121,8 @@ func show_result(r: Dictionary) -> void:
 		else:
 			box.add_child(PixelUI.label("Clear the level to earn stars!", 16, PixelUI.C_DIM, HORIZONTAL_ALIGNMENT_CENTER))
 	box.add_child(PixelUI.label("Health left: %d%%     Time: %ds" % [int(round(float(r.get("health_ratio", 0.0)) * 100.0)), int(r.get("time_used", 0))], 16, PixelUI.C_TEXT, HORIZONTAL_ALIGNMENT_CENTER))
+	if r.has("max_combo"):
+		box.add_child(PixelUI.label("Best combo: %d hits     Damage dealt: %d" % [int(r["max_combo"]), int(r.get("damage", 0))], 16, PixelUI.C_GOLD, HORIZONTAL_ALIGNMENT_CENTER))
 	if r.get("note", "") != "":
 		box.add_child(PixelUI.wrap_label(str(r["note"]), 16, PixelUI.C_GOLD, HORIZONTAL_ALIGNMENT_CENTER))
 	var row := HBoxContainer.new()

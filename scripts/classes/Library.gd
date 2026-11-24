@@ -5,7 +5,8 @@ extends RefCounted
 const CLASSES_PATH := "res://resources/classes/classes.json"
 const SKILLS_PATH := "res://resources/skills/skills.json"
 const LEVELS_PATH := "res://resources/levels/levels.json"
-const CLASS_ORDER := ["vanguard", "duelist", "ranger", "gunslinger", "arcanist", "shadeweaver"]
+const CLASS_ORDER := ["vanguard", "duelist", "ranger", "gunslinger", "arcanist", "shadeweaver"]   # playable
+const PLANNED_ORDER := ["riftblade", "warden", "stormcaller", "reaper", "chronomancer", "beastbound"]  # designed, not implemented
 
 static var _loaded := false
 static var _skills: Dictionary = {}
@@ -45,6 +46,12 @@ static func get_class_data(class_id: String) -> ClassData:
 static func class_ids() -> Array:
 	ensure_loaded()
 	return CLASS_ORDER
+
+
+## All 12 roster entries in display order: the playable six first, then the planned six.
+static func roster_ids() -> Array:
+	ensure_loaded()
+	return CLASS_ORDER + PLANNED_ORDER
 
 
 static func get_skill(skill_id: String) -> SkillData:

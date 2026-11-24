@@ -13,6 +13,10 @@ extends Resource
 @export var color: Color = Color.WHITE
 @export var icon: String = ""
 @export var params: Dictionary = {}
+var description := ""
+var tip := ""
+var cost_text := ""
+var is_ultimate := false
 
 
 static func from_dict(skill_id: String, d: Dictionary) -> SkillData:
@@ -27,6 +31,10 @@ static func from_dict(skill_id: String, d: Dictionary) -> SkillData:
 	s.color = Color.from_string(str(d.get("color", "#ffffff")), Color.WHITE)
 	s.icon = str(d.get("icon", ""))
 	s.params = d
+	s.description = str(d.get("desc", ""))
+	s.tip = str(d.get("tip", ""))
+	s.cost_text = str(d.get("cost_text", ""))
+	s.is_ultimate = bool(d.get("ult", false))
 	return s
 
 

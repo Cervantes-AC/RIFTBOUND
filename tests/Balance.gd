@@ -3,7 +3,7 @@ extends Node
 ## Run: godot --headless --path . --fixed-fps 60 res://tests/Balance.tscn
 ## Output is a win matrix (row class beats column class, as % of rounds) + average fight length.
 
-const ROUNDS := 4
+var ROUNDS := int(OS.get_environment("ROUNDS")) if OS.get_environment("ROUNDS") != "" else 4
 
 
 func _ready() -> void:

@@ -102,6 +102,22 @@ func build_quick_config(team_size: int, player_class: String, difficulty: String
 	}
 
 
+## Training room: one stationary dummy (3x health) that is healed back up; no win or lose condition.
+func build_training_config(player_class: String, arena: String) -> Dictionary:
+	var dummy_class := "duelist" if player_class == "vanguard" else "vanguard"
+	return {
+		"mode": "training", "level_id": 0, "arena": arena, "time": 99999.0,
+		"objective": "Training room: no pressure. Try every move.",
+		"lose_text": "", "level_name": "Training - %s" % ARENA_NAMES.get(arena, arena),
+		"hints": ["Practice anything - the dummy cannot defeat you.", "Open MOVES in the pause menu for the move list.", "Try: basic then special (cancel), dodge an attack to COUNTER, and your ultimate (meter refills fast here)."],
+		"local_slot": 0, "online_role": "",
+		"fighters": [
+			_fighter(0, 0, player_class, "local", "You"),
+			_fighter(1, 1, dummy_class, "dummy", "Dummy", {}, 3.0),
+		],
+	}
+
+
 func build_online_config(host_class: String, guest_class: String, arena: String, role: String) -> Dictionary:
 	var is_host := role == "host"
 	return {

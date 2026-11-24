@@ -15,7 +15,11 @@ const BODY := Vector2(34, 78)
 const LAYER_FIGHTER := 2
 const LAYER_PLATFORM := 4
 const ACT_STYLES: Array[String] = ["", "slash", "slam", "shoot", "cast", "cast_up", "spin", "guard", "dash"]
-const STATUS_BITS := {"shield": 1, "invuln": 2, "slow": 4, "root": 8, "haste": 16, "empower": 32}
+const STATUS_BITS := {"shield": 1, "invuln": 2, "slow": 4, "root": 8, "haste": 16, "empower": 32, "mark": 64, "deadeye": 128, "scorch": 256}
+const ULT_MAX := 100.0
+const MOBILITY_SLOT := 4
+const COMBO_WINDOW := 1.6
+const BUFFER_TIME := 0.2
 
 var slot: int = 0
 var team: int = 0
@@ -52,11 +56,23 @@ var action_phase := ""
 var action_t := 0.0
 var action_active_time := 0.0
 
+var mech: Mechanic            # class signature mechanic (resource, passive, combo rules)
+var ult := 0.0                # ultimate meter 0..ULT_MAX, earned by dealing and taking damage
+var combo_count := 0          # consecutive hits landed (resets after COMBO_WINDOW without a hit)
+var combo_dmg := 0.0
+var combo_t := 0.0
+var stat_damage := 0.0        # match statistics (shown on the result screen)
+var stat_max_combo := 0
+var counter_t := 0.0          # >0 after dodging an attack: next hit is a COUNTER (+25%)
+var action_connected := false # the current action has hit something (opens cancel windows)
+
 var _intent: Intent = Intent.new()
 var _coyote := 0.0
 var _jump_buffer := 0.0
 var _air_jumps_left := 0
-var _dodge_cd := 0.0
+var _buffer_slot := -1        # buffered ability press (slot) and its remaining time
+var _buffer_t := 0.0
+var _mobility_t := 0.0        # >0 while the mobility ability's invulnerability can "dodge" attacks
 var _stun_t := 0.0
 var _combo_hits := 0
 var _combo_reset := 0.0
@@ -93,9 +109,13 @@ func setup(p_slot: int, p_team: int, p_data: ClassData, p_name: String, hp_mult:
 	combat = CombatComponent.new()
 	combat.setup(self)
 	add_child(combat)
+	mech = Mechanic.create(data.mech_id, self)
 	visual = CharacterVisual.new()
 	visual.fighter = self
 	add_child(visual)
+	var overlay := MechOverlay.new()
+	overlay.fighter = self
+	add_child(overlay)
 	add_to_group("fighters")
 	_air_jumps_left = data.max_jumps - 1
 
@@ -115,7 +135,7 @@ func set_status(status_name: String, duration: float, value: float = 0.0) -> voi
 
 
 func effective_speed() -> float:
-	var s := data.move_speed * speed_mult
+	var s := data.move_speed * speed_mult * mech.speed_bonus()
 	if has_status("slow"):
 		s *= 0.5
 	if has_status("haste"):
@@ -123,8 +143,26 @@ func effective_speed() -> float:
 	return s
 
 
+## Slots: 0 basic, 1 special, 2 signature, 3 ultimate, 4 mobility.
 func skill_for_slot(s: int) -> SkillData:
-	return data.basic if s == 0 else data.skills[s - 1]
+	if s == 0:
+		return data.basic
+	if s == MOBILITY_SLOT:
+		return data.mobility
+	return data.skills[s - 1]
+
+
+## Cooldown, ultimate meter and class resource gate for a slot (used by input, AI and the touch buttons).
+func can_use_slot(s: int) -> bool:
+	if state == State.DEAD or not skills.is_ready(s):
+		return false
+	if s == 3 and ult < ULT_MAX:
+		return false
+	return mech.can_use(s, skill_for_slot(s))
+
+
+func ult_gain(amount: float) -> void:
+	ult = minf(ult + amount, ULT_MAX)
 
 
 func center() -> Vector2:
@@ -175,9 +213,17 @@ func _read_intent(delta: float) -> Intent:
 
 func _tick_timers(delta: float) -> void:
 	skills.update(delta)
-	_dodge_cd = maxf(_dodge_cd - delta, 0.0)
+	mech.tick(delta)
+	ult_gain(delta * 1.0)   # slow trickle so the ultimate is always reachable
 	_coyote = maxf(_coyote - delta, 0.0)
 	_jump_buffer = maxf(_jump_buffer - delta, 0.0)
+	_buffer_t = maxf(_buffer_t - delta, 0.0)
+	_mobility_t = maxf(_mobility_t - delta, 0.0)
+	counter_t = maxf(counter_t - delta, 0.0)
+	combo_t = maxf(combo_t - delta, 0.0)
+	if combo_t <= 0.0:
+		combo_count = 0
+		combo_dmg = 0.0
 	_drop_t = maxf(_drop_t - delta, 0.0)
 	_combo_reset = maxf(_combo_reset - delta, 0.0)
 	if _combo_reset <= 0.0:
@@ -187,18 +233,39 @@ func _tick_timers(delta: float) -> void:
 		if status_t[k] <= 0.0:
 			status_t.erase(k)
 			status_v.erase(k)
+			if k == "root":
+				set_status("rootimm", 2.5)   # anti-lock: no re-root right after a root ends
 	if _drop_t <= 0.0:
 		collision_mask = 1 | LAYER_PLATFORM
 
 
 # ----------------------------------------------------------------- states
-func _step_free(delta: float, it: Intent) -> void:
-	if it.dodge_pressed and try_dodge(it.move):
-		return
-	if it.attack_pressed and try_skill(0):
-		return
+## Abilities pressed this frame as slots, in priority order (mobility, basic, special, signature, ultimate).
+func _pressed_slots(it: Intent) -> Array[int]:
+	var r: Array[int] = []
+	if it.dodge_pressed:
+		r.append(MOBILITY_SLOT)
+	if it.attack_pressed:
+		r.append(0)
 	for i in 3:
-		if it.skill_pressed[i] and try_skill(i + 1):
+		if it.skill_pressed[i]:
+			r.append(i + 1)
+	return r
+
+
+func _try_slot(s: int, move_dir: float) -> bool:
+	return try_dodge(move_dir) if s == MOBILITY_SLOT else try_skill(s)
+
+
+func _step_free(delta: float, it: Intent) -> void:
+	# a press made during the previous action's recovery fires as soon as we are free (input buffer)
+	if _buffer_slot != -1 and _buffer_t > 0.0:
+		var bs := _buffer_slot
+		_buffer_slot = -1
+		if _try_slot(bs, it.move):
+			return
+	for ps in _pressed_slots(it):
+		if _try_slot(ps, it.move):
 			return
 	var rooted := has_status("root")
 	if it.jump_pressed:
@@ -223,7 +290,31 @@ func _step_free(delta: float, it: Intent) -> void:
 	state = State.AIR if not is_on_floor() else (State.RUN if absf(velocity.x) > 20.0 and absf(it.move) > 0.1 else State.IDLE)
 
 
+## Cancel rules: during recovery the mobility ability may always cancel; after a basic attack CONNECTS,
+## the special and signature may cancel it (basic -> special combo link).
+func _can_cancel_into(s: int) -> bool:
+	if action_phase != "recover":
+		return false
+	if s == MOBILITY_SLOT:
+		return can_use_slot(s)
+	return action_slot == 0 and action_connected and (s == 1 or s == 2) and can_use_slot(s)
+
+
 func _step_action(delta: float, it: Intent) -> void:
+	var presses := _pressed_slots(it)
+	if not presses.is_empty():
+		_buffer_slot = presses[0]
+		_buffer_t = BUFFER_TIME
+	for ps in presses:
+		if _can_cancel_into(ps):
+			_buffer_slot = -1
+			combat.cancel(self)
+			_end_action()
+			if _try_slot(ps, it.move):
+				return
+			break
+	if state != State.ACTION:
+		return
 	action_t += delta
 	var sk := action_skill
 	match action_phase:
@@ -339,43 +430,45 @@ func auto_face_enemy() -> void:
 		facing = 1 if e.global_position.x >= global_position.x else -1
 
 
-func try_skill(slot_index: int) -> bool:
+func try_skill(slot_index: int, move_dir: float = 0.0) -> bool:
 	if state == State.DEAD or state == State.HURT or state == State.ACTION or state == State.DODGE:
 		return false
-	if not skills.is_ready(slot_index):
+	if not can_use_slot(slot_index):
 		return false
 	var sk := skill_for_slot(slot_index)
+	mech.on_use(slot_index, sk)
 	skills.start_cooldown(slot_index, sk.cooldown * cd_scale)
-	auto_face_enemy()
+	if slot_index == 3:
+		ult = 0.0
+	# mobility moves where the stick points (except "back" moves, which always retreat from the enemy)
+	if slot_index == MOBILITY_SLOT and absf(move_dir) > 0.2 and str(sk.p("dir", "forward")) != "back":
+		facing = 1 if move_dir > 0.0 else -1
+	else:
+		auto_face_enemy()
+	if slot_index == MOBILITY_SLOT:
+		var iv := float(sk.p("invuln", 0.0))
+		if iv > 0.0:
+			set_status("invuln", iv)
+		_mobility_t = iv + 0.05
 	action_skill = sk
 	action_slot = slot_index
 	action_phase = "windup"
 	action_t = 0.0
 	action_active_time = 0.0
+	action_connected = false
 	act_progress = 0.0
 	act_style = CombatComponent.style_for(sk)
 	state = State.ACTION
 	anim_time = 0.0
+	if world:
+		combat.announce(sk)
 	action_started.emit(self, sk)
 	return true
 
 
+## Mobility ability (dash / blink / roll / leap, depends on the class). Kept under the old name.
 func try_dodge(move_dir: float) -> bool:
-	if _dodge_cd > 0.0 or state == State.DEAD or state == State.HURT or state == State.ACTION or state == State.DODGE:
-		return false
-	_dodge_cd = data.dodge_cooldown
-	var dir := facing
-	if absf(move_dir) > 0.2:
-		dir = 1 if move_dir > 0.0 else -1
-	state = State.DODGE
-	action_t = 0.0
-	anim_time = 0.0
-	set_status("invuln", 0.22)
-	start_dash(dir * 200.0 / 0.2, 0.2)
-	AudioManager.play_sfx("dodge")
-	if world:
-		world.fx("dust", global_position, {"count": 5})
-	return true
+	return try_skill(MOBILITY_SLOT, move_dir)
 
 
 func start_dash(vx: float, duration: float) -> void:
@@ -388,7 +481,7 @@ func cancel_dash() -> void:
 
 
 func dodge_cooldown_left() -> float:
-	return _dodge_cd
+	return skills.cooldown_left[MOBILITY_SLOT]
 
 
 func _end_action() -> void:
@@ -401,10 +494,21 @@ func _end_action() -> void:
 
 ## True if the hit connected (not dodged / dead).
 func receive_hit(hit: Dictionary) -> bool:
-	if state == State.DEAD or has_status("invuln"):
+	if state == State.DEAD:
 		return false
-	var dmg: float = float(hit.get("dmg", 0.0))
 	var attacker = hit.get("attacker")
+	var has_attacker: bool = attacker != null and is_instance_valid(attacker)
+	if has_status("invuln"):
+		# dodging an attack with the mobility ability opens a counter window
+		if _mobility_t > 0.0 and has_attacker and counter_t <= 0.0:
+			counter_t = 0.8
+			if world:
+				world.fx("text", global_position + Vector2(0, -110), {"text": "DODGE!", "color": Color("#9fe8ff"), "size": 20})
+		return false
+	if has_attacker and attacker.mech != null:
+		attacker.mech.shape_hit(hit, self)     # class rules that depend on the target (marks, elements)
+	mech.filter_incoming(hit)                  # class rules for the defender (Bulwark)
+	var dmg: float = float(hit.get("dmg", 0.0))
 	var reduction := 0.0
 	var armored := has_status("shield")
 	if armored:
@@ -428,33 +532,54 @@ func receive_hit(hit: Dictionary) -> bool:
 			_combo_hits += 1
 			_combo_reset = 1.5
 			stun *= maxf(0.3, 1.0 - 0.2 * (_combo_hits - 1))
-			combat.cancel(self)
-			if state == State.ACTION:
-				_end_action()
-			cancel_dash()
-			_stun_t = stun
-			state = State.HURT
-			anim_time = 0.0
+			if _combo_hits >= 6:
+				stun = 0.0   # anti-lock: after 6 stunning hits in a row you cannot be stunned until the chain breaks
+			if stun > 0.0:
+				combat.cancel(self)
+				if state == State.ACTION:
+					_end_action()
+				cancel_dash()
+				_stun_t = stun
+				state = State.HURT
+				anim_time = 0.0
 		var st: String = str(hit.get("status", ""))
-		if st != "":
+		if st != "" and not (st == "root" and has_status("rootimm")):
 			set_status(st, float(hit.get("status_dur", 1.0)))
-	if attacker != null and is_instance_valid(attacker):
-		attacker.on_dealt_hit()
+	mech.on_damaged(dealt, hit)
+	ult_gain(dealt * 0.5)
+	if has_attacker:
+		attacker.on_dealt_hit(self, dealt, hit)
 	damaged.emit(self, dealt, global_position + Vector2(0, -70))
 	return true
 
 
-## Empower buff (Phantom Step) is consumed by the next damaging hit this fighter lands.
-func on_dealt_hit() -> void:
+## Called on the attacker after one of its hits connected: buffs, combo counter, ultimate charge.
+func on_dealt_hit(target: Fighter = null, dealt: float = 0.0, hit: Dictionary = {}) -> void:
 	if has_status("empower"):
 		status_t.erase("empower")
 		status_v.erase("empower")
+	if target == null:
+		return
+	if counter_t > 0.0 and not hit.has("chain"):
+		counter_t = 0.0
+		if world:
+			world.fx("text", target.global_position + Vector2(0, -130), {"text": "COUNTER!", "color": Color("#ffd24a"), "size": 22})
+	action_connected = true
+	combo_count = combo_count + 1 if combo_t > 0.0 else 1
+	combo_dmg = combo_dmg + dealt if combo_t > 0.0 else dealt
+	combo_t = COMBO_WINDOW
+	stat_damage += dealt
+	stat_max_combo = maxi(stat_max_combo, combo_count)
+	ult_gain(dealt * 0.9)
+	mech.on_hit_dealt(hit, target, dealt)
 
 
 func outgoing_multiplier() -> float:
-	var m := damage_mult
+	var m := damage_mult * mech.outgoing_bonus() * mech.fire_mult
 	if has_status("empower"):
 		m *= float(status_v.get("empower", 1.5))
+	if counter_t > 0.0:
+		m *= 1.25
 	return m
 
 
@@ -497,7 +622,7 @@ func to_snapshot() -> Array:
 	return [global_position.x, global_position.y, velocity.x, velocity.y, facing, int(state),
 		health.current, health.max_health, bits, ACT_STYLES.find(act_style), act_progress,
 		skills.cooldown_left[0], skills.cooldown_left[1], skills.cooldown_left[2], skills.cooldown_left[3],
-		_dodge_cd, 1 if enraged else 0]
+		skills.cooldown_left[4], 1 if enraged else 0, ult, combo_count] + mech.serialize()
 
 
 func from_snapshot(a: Array) -> void:
@@ -525,14 +650,16 @@ func from_snapshot(a: Array) -> void:
 	var si := int(a[9])
 	act_style = ACT_STYLES[si] if si >= 0 and si < ACT_STYLES.size() else ""
 	act_progress = a[10]
-	for i in 4:
+	for i in 5:
 		skills.cooldown_left[i] = a[11 + i]
-	_dodge_cd = a[15]
 	enraged = int(a[16]) == 1
+	ult = a[17]
+	combo_count = int(a[18])
+	mech.apply(a.slice(19, 22))
 
 
 func _puppet_step(delta: float) -> void:
 	if _puppet_has_target:
 		global_position = global_position.lerp(_puppet_target + velocity * 0.03, clampf(delta * 18.0, 0.0, 1.0))
-	for i in 4:
+	for i in 5:
 		skills.cooldown_left[i] = maxf(skills.cooldown_left[i] - delta, 0.0)

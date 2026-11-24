@@ -44,7 +44,7 @@ func update(f: Fighter, delta: float) -> Intent:
 
 
 func _is_ranged(f: Fighter) -> bool:
-	return f.data.archetype != "Melee"
+	return f.data.basic.kind == "projectile"   # decided by the basic attack, not the label (Shadeweaver is a melee caster)
 
 
 func _decide(f: Fighter, t: Fighter, it: Intent) -> void:
@@ -101,17 +101,24 @@ func _decide(f: Fighter, t: Fighter, it: Intent) -> void:
 	var dodge_chance: float = float(params.get("dodge", 0.3))
 	var threatened := _threat_near(f, t)
 	if threatened and rng.randf() < dodge_chance + (0.2 if is_boss else 0.0):
-		if f.dodge_cooldown_left() <= 0.0:
+		if f.can_use_slot(Fighter.MOBILITY_SLOT):
 			it.dodge_pressed = true
 			it.move = dir if rng.randf() < 0.5 else -dir
 			_move = it.move
 			return
+	# offensive mobility (Shield Rush, Phantom-style dashes) to close the gap
+	var mob := f.data.mobility
+	if mob != null and mob.kind in ["dash_hit", "dash_through"] and f.can_use_slot(Fighter.MOBILITY_SLOT) \
+			and dist > 110.0 and dist < float(mob.p("dist", 280)) and absf(dy) < 110.0 and rng.randf() < 0.5 * aggression + 0.2:
+		it.dodge_pressed = true
+		it.move = dir
+		return
 
 	# ---- offence
 	var aligned := absf(dy) < 110.0
 	var skill_chance: float = float(params.get("skill", 0.5))
-	for i in 3:
-		if not f.skills.is_ready(i + 1):
+	for i in [2, 0, 1]:   # ultimate first (only usable when the meter is full), then special, then signature
+		if not f.can_use_slot(i + 1):
 			continue
 		if rng.randf() > skill_chance:
 			continue
@@ -120,7 +127,7 @@ func _decide(f: Fighter, t: Fighter, it: Intent) -> void:
 			if f.data.skills[i].kind in ["blink", "evade"]:
 				it.move = (-dir if low_hp or threatened else dir)
 			return
-	if f.skills.is_ready(0):
+	if f.can_use_slot(0):
 		var reach := 105.0 if not ranged else 700.0
 		if f.data.basic.kind == "melee":
 			reach = float(f.data.basic.p("reach", 50)) + float(f.data.basic.p("w", 80)) * 0.5 + 18.0
@@ -131,7 +138,22 @@ func _decide(f: Fighter, t: Fighter, it: Intent) -> void:
 func _skill_useful(f: Fighter, t: Fighter, sk: SkillData, dist: float, dy: float, aligned: bool, threatened: bool, low_hp: bool) -> bool:
 	match sk.kind:
 		"projectile":
+			if str(sk.p("style", "")) == "mark" and t.has_status("mark"):
+				return false
 			return dist > 140.0 and dist < 720.0 and aligned
+		"retaliate":
+			return dist < 150.0 and aligned
+		"bastion":
+			return threatened or low_hp or (t.is_attacking() and dist < 260.0) or dist < 200.0
+		"flurry":
+			return dist < 440.0 and absf(dy) < 140.0
+		"attune":
+			return rng.randf() < 0.2
+		"echo":
+			var em: ShadeweaverMech = f.mech as ShadeweaverMech
+			if em != null and em.aux > 0.0:
+				return dist < 110.0 or threatened
+			return threatened or low_hp
 		"melee", "multi_melee":
 			return dist < float(sk.p("reach", 50)) + float(sk.p("w", 80)) * 0.5 + 10.0 and aligned
 		"dash_hit":
@@ -195,5 +217,5 @@ func _hazard_reflex(f: Fighter, it: Intent) -> void:
 			_hold_jump = true
 	for o in a.orbs:
 		var op := a.orb_position(o, a.time)
-		if f.center().distance_to(op) < float(o["r"]) + 90.0 and f.dodge_cooldown_left() <= 0.0 and rng.randf() < 0.1:
+		if f.center().distance_to(op) < float(o["r"]) + 90.0 and f.can_use_slot(Fighter.MOBILITY_SLOT) and rng.randf() < 0.1:
 			it.dodge_pressed = true

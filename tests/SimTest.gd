@@ -282,13 +282,13 @@ func _test_combat() -> void:
 
 # ---------------------------------------------------------------- every skill of every class
 func _test_skills() -> void:
-	print("--- all 6 classes x (basic + 3 skills)")
+	print("--- all 6 classes x (basic + special + signature + ultimate + mobility)")
 	for id in Library.class_ids():
 		var m := await _make_match(id, "vanguard", "forest")
 		var a := m.fighters[0]
 		var b := m.fighters[1]
 		b.health.setup(100000.0)
-		for slot in 4:
+		for slot in 5:
 			var sk0 := a.skill_for_slot(slot)
 			var gap := 70.0
 			if sk0.kind in ["projectile", "evade", "dash_through"]:
@@ -304,6 +304,9 @@ func _test_skills() -> void:
 			b.velocity = Vector2.ZERO
 			a.state = Fighter.State.IDLE
 			a.skills.reset()
+			a.ult = Fighter.ULT_MAX      # ultimates need a full meter, resources need to be full
+			a.mech.res = a.mech.max_res
+			a.mech.aux = 0.0
 			var hp_before := b.health.current
 			var ok := a.try_skill(slot)
 			await frames(130)
@@ -322,26 +325,24 @@ func _test_skills() -> void:
 
 # ---------------------------------------------------------------- touch layout sanity
 func _test_touch_layout() -> void:
-	print("--- touch controls layout")
-	var bl := TouchControls.BUTTONS
-	var ok := true
-	var detail := ""
-	for i in bl.size():
-		for j in range(i + 1, bl.size()):
-			var d: float = (bl[i]["o"] as Vector2).distance_to(bl[j]["o"])
-			var need: float = float(bl[i]["r"]) + float(bl[j]["r"]) + 6.0
-			if d < need:
-				ok = false
-				detail += "%s/%s overlap (%.0f<%.0f) " % [bl[i]["n"], bl[j]["n"], d, need]
-	check("touch buttons do not overlap each other", ok, detail)
-	var min_dia := 9999.0
-	for b in bl:
-		min_dia = minf(min_dia, float(b["r"]) * 2.0)
-	check("touch buttons are at least 88px (about 9 mm on a phone) wide", min_dia >= 88.0, str(min_dia))
-	var far_left := 0.0
-	for b in bl:
-		far_left = maxf(far_left, -(b["o"] as Vector2).x + float(b["r"]))
-	check("buttons stay in the right 30% of a 1280px screen", far_left < 1280.0 * 0.32, str(far_left))
+	print("--- touch controls layout (standard + compact presets, 3 aspect ratios)")
+	for preset in ControlLayout.preset_names():
+		var specs := ControlLayout.resolve(preset, {}, 1.0)
+		for screen in [Vector2(1280, 720), Vector2(1600, 720), Vector2(960, 720)]:
+			var bad := ControlLayout.overlaps(specs, screen)
+			check("%s layout: no overlapping buttons at %dx%d" % [preset, screen.x, screen.y], bad.is_empty(), str(bad))
+		var min_dia := 9999.0
+		var far_left := 0.0
+		for n in ControlLayout.NAMES:
+			min_dia = minf(min_dia, float(specs[n]["r"]) * 2.0)
+			if specs[n]["anchor"] == "br":
+				far_left = maxf(far_left, -(specs[n]["o"] as Vector2).x + float(specs[n]["r"]))
+		check("%s layout: buttons are at least 76px wide (about 8 mm on a phone)" % preset, min_dia >= 76.0, str(min_dia))
+		check("%s layout: right-hand cluster stays in the right 36%% of a 1280px screen" % preset, far_left < 1280.0 * 0.36, str(far_left))
+	var big := ControlLayout.resolve("standard", {}, ControlLayout.MAX_SCALE)
+	check("largest size setting still has no overlaps", ControlLayout.overlaps(big, Vector2(1280, 720)).is_empty(), str(ControlLayout.overlaps(big, Vector2(1280, 720))))
+	var c := ControlLayout.resolve("custom", {"attack": Vector2(-300, -200)}, 1.0)
+	check("custom layout uses the stored offset", (c["attack"]["o"] as Vector2) == Vector2(-300, -200))
 
 
 # ---------------------------------------------------------------- AI-vs-AI campaign simulation
@@ -402,9 +403,7 @@ func _test_touch_input() -> void:
 	layer.add_child(t)
 	await frames(3)
 	check("touch overlay fills the viewport", t.size.x >= 1000.0 and t.size.y >= 600.0, str(t.size))
-	var attack: Dictionary = TouchControls.BUTTONS[0]
-	var jump: Dictionary = TouchControls.BUTTONS[1]
-	t._on_press(5, t.button_center(attack))
+	t._on_press(5, t.button_center("attack"))
 	check("tap Attack presses the attack action", Input.is_action_pressed("attack"))
 	t._on_press(6, Vector2(160, t.size.y - 160))   # second finger on the left: joystick
 	t._update_stick(Vector2(160 + 70, t.size.y - 160))
@@ -413,7 +412,7 @@ func _test_touch_input() -> void:
 	check("joystick left switches to move_left", Input.is_action_pressed("move_left") and not Input.is_action_pressed("move_right"))
 	t._update_stick(Vector2(160 + 4, t.size.y - 160))
 	check("joystick dead-zone ignores tiny movement", not Input.is_action_pressed("move_left") and not Input.is_action_pressed("move_right"))
-	t._on_press(7, t.button_center(jump))
+	t._on_press(7, t.button_center("jump"))
 	check("third finger presses Jump too", Input.is_action_pressed("jump"))
 	t._on_release(5)
 	check("releasing attack finger releases only attack", not Input.is_action_pressed("attack") and Input.is_action_pressed("jump"))

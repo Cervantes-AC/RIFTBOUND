@@ -40,11 +40,55 @@ class Bars extends Control:
 			var count := members.size()
 			var w := 360.0 if count == 1 else 300.0
 			var h := 30.0 if count == 1 else 22.0
+			var y := 22.0
 			for i in count:
 				var f: Fighter = members[i]
-				var y := 22.0 + i * (h + 38.0)
 				var x := margin + inset.x + 64.0 if team == 0 else size.x - margin - inset.y - w - 64.0
 				_draw_bar(f, Vector2(x, y), Vector2(w, h), team == 1)
+				if f.slot == world.local_slot:
+					_draw_meters(f, Vector2(x, y + h + 34.0), team == 1)
+					y += 40.0
+					_draw_combo(f, inset)
+				y += h + 38.0
+
+	## Class resource bar + ultimate meter for the local player (all values synced from the host in online play).
+	func _draw_meters(f: Fighter, pos: Vector2, mirrored: bool) -> void:
+		var font := PixelUI.FONT
+		var w := 230.0
+		var x := pos.x if not mirrored else pos.x + (430.0 if false else 0.0)
+		var align := HORIZONTAL_ALIGNMENT_LEFT
+		if mirrored:
+			x = pos.x + (300.0 if world.fighters.size() > 2 else 360.0) - w
+		# class resource
+		var m: Mechanic = f.mech
+		draw_rect(Rect2(x - 3, pos.y - 3, w + 6, 20), Color("#08050f"))
+		draw_rect(Rect2(x, pos.y, w, 14), Color("#1a0d14"))
+		draw_rect(Rect2(x, pos.y, w * m.fraction(), 14), m.color)
+		draw_rect(Rect2(x, pos.y, w * m.fraction(), 5), m.color.lightened(0.4))
+		draw_string(font, Vector2(x + 4, pos.y + 12), m.label, align, w, 12, Color.WHITE)
+		draw_string(font, Vector2(x, pos.y + 12), m.hud_text(), HORIZONTAL_ALIGNMENT_RIGHT, w - 4, 12, Color.WHITE)
+		# ultimate
+		var uy := pos.y + 24.0
+		var uf := clampf(f.ult / Fighter.ULT_MAX, 0.0, 1.0)
+		var ready := uf >= 1.0
+		draw_rect(Rect2(x - 3, uy - 3, w + 6, 20), Color("#ffd24a") if ready and fmod(Time.get_ticks_msec() / 250.0, 2.0) < 1.0 else Color("#08050f"))
+		draw_rect(Rect2(x, uy, w, 14), Color("#1a0d14"))
+		draw_rect(Rect2(x, uy, w * uf, 14), Color("#ffc83a") if ready else Color("#b08a3a"))
+		draw_string(font, Vector2(x + 4, uy + 12), "ULTIMATE", align, w, 12, Color.WHITE if not ready else Color("#08050f"))
+		draw_string(font, Vector2(x, uy + 12), "READY" if ready else "%d%%" % int(uf * 100.0), HORIZONTAL_ALIGNMENT_RIGHT, w - 4, 12, Color.WHITE if not ready else Color("#08050f"))
+
+	## Combo counter for the local player (hits, damage), fading with the combo timer.
+	func _draw_combo(f: Fighter, inset: Vector2) -> void:
+		if f.combo_count < 2:
+			return
+		var font := PixelUI.FONT
+		var a := clampf(f.combo_t / 0.5, 0.0, 1.0)
+		var pop := 1.0 + 0.25 * clampf((f.combo_t - (Fighter.COMBO_WINDOW - 0.15)) / 0.15, 0.0, 1.0)
+		var fs := int(26.0 * pop)
+		var x := 32.0 + inset.x
+		draw_string(font, Vector2(x + 2, 322), "%d HITS" % f.combo_count, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(0, 0, 0, a))
+		draw_string(font, Vector2(x, 320), "%d HITS" % f.combo_count, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, Color(1.0, 0.82, 0.25, a))
+		draw_string(font, Vector2(x, 346), "%d DAMAGE" % int(round(f.combo_dmg)), HORIZONTAL_ALIGNMENT_LEFT, -1, 14, Color(1, 1, 1, a))
 
 	func _draw_bar(f: Fighter, pos: Vector2, sz: Vector2, mirrored: bool) -> void:
 		var font := PixelUI.FONT

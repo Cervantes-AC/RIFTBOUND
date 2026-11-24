@@ -122,6 +122,9 @@ func _build_world() -> void:
 				f.speed_mult = float(params.get("speed", 1.0))
 				f.damage_mult = float(params.get("damage", 1.0))
 				f.is_boss = boss
+			"dummy":
+				f.controller = DummyController.new()
+				f.damage_mult = 0.3
 			"remote":
 				f.controller = NetworkManager.remote_controller
 			_:
@@ -221,6 +224,9 @@ func _fight_tick(delta: float) -> void:
 			_surge_t = _rng.randf_range(6.0, 9.0)
 			_spawn_surges()
 	_tutorial_hints(delta)
+	if config["mode"] == "training":
+		_training_tick(delta)
+		return
 	if _result_pending:
 		return
 	var alive_teams := {}
@@ -232,6 +238,20 @@ func _fight_tick(delta: float) -> void:
 		_finish(w, "knockout")
 	elif time_left <= 0.0:
 		_finish(_timeout_winner(), "timeout")
+
+
+## Training room: heal the dummy (and you), refill the ultimate quickly, never end the match.
+func _training_tick(delta: float) -> void:
+	hud.timer_label.text = "TRAIN"
+	for f in fighters:
+		if f.is_dead():
+			continue
+		var heal := f.health.ratio() < (0.5 if f.team == 1 else 0.4)
+		if heal:
+			f.health.current = f.health.max_health
+			f.health.changed.emit(f.health.current, f.health.max_health)
+		if f.slot == local_slot:
+			f.ult = minf(f.ult + delta * 25.0, Fighter.ULT_MAX)
 
 
 func _timeout_winner() -> int:
@@ -426,6 +446,8 @@ func _toggle_pause() -> void:
 		return
 	pause_menu = PauseMenu.new()
 	pause_menu.allow_restart = online_role == ""
+	var me := fighter_by_slot(local_slot)
+	pause_menu.guide_class = me.data.id if me != null else GameState.selected_class
 	add_child(pause_menu)
 	pause_menu.resume_pressed.connect(_resume)
 	pause_menu.restart_pressed.connect(_restart)
@@ -506,6 +528,8 @@ func _present_result(result: Dictionary) -> void:
 	if me != null:
 		ratio = me.health.ratio()
 		r["health_ratio"] = ratio
+		r["max_combo"] = me.stat_max_combo
+		r["damage"] = int(round(me.stat_damage))
 	match str(result["reason"]):
 		"knockout":
 			r["reason"] = "You eliminated the opposing team!" if outcome == "win" else ("Your team was eliminated." if outcome == "lose" else "Both sides fell at once.")
@@ -548,6 +572,8 @@ func _restart_same_match() -> void:
 	var mode: String = config["mode"]
 	if mode == "campaign":
 		GameState.start_campaign_level(int(config["level_id"]), GameState.selected_class)
+	elif mode == "training":
+		GameState.start_match(GameState.build_training_config(GameState.selected_class, str(config["arena"])))
 	elif mode == "quick":
 		var team_size: int = (config["fighters"].size()) / 2
 		GameState.start_match(GameState.build_quick_config(team_size, GameState.selected_class, GameState.quick_difficulty, str(config["arena"])))

@@ -35,6 +35,11 @@ func _ready() -> void:
 	box.add_child(_slider("MASTER VOLUME", "master_volume"))
 	box.add_child(_slider("MUSIC VOLUME", "music_volume"))
 	box.add_child(_slider("EFFECTS VOLUME", "sfx_volume"))
+	var ctl := PixelUI.button("TOUCH CONTROLS: LAYOUT, SIZE, OPACITY", Color("#7a3a9a"), 16, Vector2(0, 60))
+	ctl.pressed.connect(func():
+		AudioManager.play_sfx("click")
+		UIManager.go("res://scenes/ui/ControlEditor.tscn"))
+	box.add_child(ctl)
 	var reset := PixelUI.button("RESET PROGRESS", Color("#8a3a3a"), 16, Vector2(0, 60))
 	reset.pressed.connect(_ask_reset)
 	box.add_child(reset)

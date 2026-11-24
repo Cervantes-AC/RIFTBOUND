@@ -81,6 +81,7 @@ func _check_hits() -> void:
 			"attacker": attacker, "dmg": spec["dmg"], "kb": spec["kb"], "kb_up": spec["kb_up"],
 			"stun": spec["stun"], "status": spec.get("status", ""), "status_dur": spec.get("status_dur", 1.0),
 			"from_x": global_position.x - sign(velocity.x) * 20.0, "source": spec.get("source", ""), "color": spec["color"],
+			"element": spec.get("element", ""),
 		}
 		var connected: bool = target.receive_hit(h)
 		if connected and world:
@@ -120,6 +121,10 @@ func _draw() -> void:
 			draw_rect(Rect2(-len, -w, 8, w * 2), c.darkened(0.2))
 			if style == "arrow_big":
 				draw_rect(Rect2(-len - 24, -3, 24, 6), Color(c, 0.35))
+		"mark":
+			draw_rect(Rect2(-30, -2, 30, 4), Color(c, 0.5))
+			draw_colored_polygon(PackedVector2Array([Vector2(14, 0), Vector2(0, -9), Vector2(-6, 0), Vector2(0, 9)]), c)
+			draw_circle(Vector2.ZERO, 3.0, Color.WHITE)
 		"bullet":
 			draw_rect(Rect2(-18, -3, 18, 6), Color(c, 0.4))
 			draw_rect(Rect2(-6, -4, 12, 8), c)

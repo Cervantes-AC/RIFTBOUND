@@ -3,6 +3,8 @@ extends Control
 
 var _picker: ClassPicker
 var _flow: Dictionary
+var _go_btn: Button
+var _guide_btn: Button
 
 
 func _ready() -> void:
@@ -17,6 +19,8 @@ func _ready() -> void:
 	var sub := ""
 	if _flow["type"] == "browse":
 		sub = "Your fighter is used in every mode. Tap a class to preview it."
+	elif _flow["type"] == "training":
+		sub = "Training room - pick a fighter to practise with."
 	elif _flow["type"] == "campaign":
 		var lvl := Library.get_level(int(_flow["level_id"]))
 		sub = "Level %d - %s: %s" % [lvl["id"], lvl["name"], lvl["objective"]]
@@ -38,9 +42,19 @@ func _ready() -> void:
 	var back := PixelUI.button("BACK", PixelUI.C_PANEL_LIGHT, 18, Vector2(220, 64))
 	back.pressed.connect(_on_back)
 	row.add_child(back)
-	var go := PixelUI.button("SELECT" if _flow["type"] == "browse" else "FIGHT!", Color("#2f7a4a"), 22, Vector2(300, 64))
+	var guide := PixelUI.button("GUIDE", Color("#3a5aa8"), 18, Vector2(220, 64))
+	guide.pressed.connect(func():
+		if _picker.is_playable(_picker.selected):
+			AudioManager.play_sfx("click")
+			MoveGuide.open(self, _picker.selected))
+	row.add_child(guide)
+	_guide_btn = guide
+	var go := PixelUI.button("SELECT" if _flow["type"] == "browse" else ("TRAIN!" if _flow["type"] == "training" else "FIGHT!"), Color("#2f7a4a"), 22, Vector2(300, 64))
 	go.pressed.connect(_on_fight)
 	row.add_child(go)
+	_go_btn = go
+	_picker.class_selected.connect(_on_class_changed)
+	_on_class_changed(_picker.selected)
 	UIManager.back_requested.connect(_on_back)
 
 
@@ -49,7 +63,16 @@ func _exit_tree() -> void:
 		UIManager.back_requested.disconnect(_on_back)
 
 
+func _on_class_changed(id: String) -> void:
+	var ok := _picker.is_playable(id)
+	_go_btn.disabled = not ok
+	_guide_btn.disabled = not ok
+
+
 func _on_fight() -> void:
+	if not _picker.is_playable(_picker.selected):
+		UIManager.toast("That fighter is planned, not playable yet.")
+		return
 	AudioManager.play_sfx("click")
 	var cls := _picker.selected
 	GameState.selected_class = cls
@@ -58,7 +81,9 @@ func _on_fight() -> void:
 		UIManager.toast("%s selected!" % Library.get_class_data(cls).display_name)
 		UIManager.go("res://scenes/ui/MainMenu.tscn")
 		return
-	if _flow["type"] == "campaign":
+	if _flow["type"] == "training":
+		GameState.start_match(GameState.build_training_config(cls, str(_flow.get("arena", "forest"))))
+	elif _flow["type"] == "campaign":
 		GameState.start_campaign_level(int(_flow["level_id"]), cls)
 	else:
 		GameState.start_match(GameState.build_quick_config(GameState.quick_team_size, cls, GameState.quick_difficulty, str(_flow.get("arena", "forest"))))

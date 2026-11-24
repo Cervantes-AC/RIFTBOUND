@@ -27,6 +27,12 @@ var music_volume: float = 0.6
 var sfx_volume: float = 0.8
 var last_ip: String = ""
 var player_class: String = "vanguard"
+# Touch control settings (see ControlLayout)
+var ctl_preset: String = "standard"       # "standard", "compact" or "custom"
+var ctl_scale: float = 1.0                # button size multiplier
+var ctl_opacity: float = 0.85             # button opacity
+var ctl_sens: float = 1.0                 # joystick sensitivity
+var ctl_custom: Dictionary = {}           # button name -> Vector2 offset (used when preset == "custom")
 
 
 func _ready() -> void:
@@ -60,8 +66,17 @@ func reset_to_defaults() -> void:
 	player_class = "vanguard"
 
 
+func reset_controls() -> void:
+	ctl_preset = "standard"
+	ctl_scale = 1.0
+	ctl_opacity = 0.85
+	ctl_sens = 1.0
+	ctl_custom = {}
+
+
 func load_save() -> void:
 	reset_to_defaults()
+	reset_controls()
 	var cfg := ConfigFile.new()
 	if cfg.load(save_path) != OK:
 		return  # fresh install: defaults (only level 1 unlocked)
@@ -89,6 +104,14 @@ func load_save() -> void:
 	sfx_volume = clampf(float(cfg.get_value("settings", "sfx_volume", 0.8)), 0.0, 1.0)
 	last_ip = str(cfg.get_value("settings", "last_ip", ""))
 	player_class = str(cfg.get_value("settings", "player_class", "vanguard"))
+	ctl_preset = str(cfg.get_value("controls", "preset", "standard"))
+	if not ["standard", "compact", "custom"].has(ctl_preset):
+		ctl_preset = "standard"
+	ctl_scale = clampf(float(cfg.get_value("controls", "scale", 1.0)), ControlLayout.MIN_SCALE, ControlLayout.MAX_SCALE)
+	ctl_opacity = clampf(float(cfg.get_value("controls", "opacity", 0.85)), 0.3, 1.0)
+	ctl_sens = clampf(float(cfg.get_value("controls", "sens", 1.0)), 0.5, 1.5)
+	var raw: Variant = cfg.get_value("controls", "custom", {})
+	ctl_custom = raw if raw is Dictionary else {}
 
 
 func save() -> void:
@@ -110,6 +133,11 @@ func save() -> void:
 	cfg.set_value("settings", "sfx_volume", sfx_volume)
 	cfg.set_value("settings", "last_ip", last_ip)
 	cfg.set_value("settings", "player_class", player_class)
+	cfg.set_value("controls", "preset", ctl_preset)
+	cfg.set_value("controls", "scale", ctl_scale)
+	cfg.set_value("controls", "opacity", ctl_opacity)
+	cfg.set_value("controls", "sens", ctl_sens)
+	cfg.set_value("controls", "custom", ctl_custom)
 	var err := cfg.save(save_path)
 	if err != OK:
 		push_warning("SaveManager: could not write %s (error %d)" % [save_path, err])

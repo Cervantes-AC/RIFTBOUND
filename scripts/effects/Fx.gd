@@ -47,6 +47,14 @@ static func spawn(parent: Node, fx_kind: String, pos: Vector2, fx_data: Dictiona
 					_particles(parent, pos, Color.WHITE, 4, 0.22, 200.0, 420.0, hdir if has_dir else Vector2.UP, 40.0, 3.0)
 				"ghost":
 					fx.life = 0.28
+				"warn":
+					fx.life = float(fx_data.get("dur", 0.4))
+				"ult":
+					fx.life = 0.7
+				"bolt_line":
+					fx.life = 0.22
+				"casing":
+					fx.life = 0.4
 				"rune":
 					fx.life = 0.55
 				_:
@@ -205,6 +213,32 @@ func _draw() -> void:
 				var ra := f * 3.0 + k * TAU / 6.0
 				draw_rect(Rect2(cos(ra) * rr - 3, sin(ra) * rr - 3, 6, 6), Color(c, 1.0 - f))
 			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		"warn":    # telegraph: pulsing ground ring that fills up over the wind-up
+			var wr := float(data.get("radius", 80.0))
+			draw_set_transform(Vector2(0, -2), 0.0, Vector2(1.0, 0.32))
+			draw_arc(Vector2.ZERO, wr, 0.0, TAU, 36, Color(c, 0.55 + 0.4 * sin(age * 28.0)), 5.0)
+			draw_circle(Vector2.ZERO, wr * f, Color(c, 0.18))
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		"ult":     # ultimate activation: rising beam + double ring in the class colour
+			var uh := 420.0 * minf(f * 3.0, 1.0)
+			draw_rect(Rect2(-26.0 * (1.0 - f), -uh, 52.0 * (1.0 - f), uh), Color(c, 0.35 * (1.0 - f)))
+			draw_rect(Rect2(-10.0 * (1.0 - f), -uh, 20.0 * (1.0 - f), uh), Color(1, 1, 1, 0.7 * (1.0 - f)))
+			draw_set_transform(Vector2(0, -2), 0.0, Vector2(1.0, 0.3))
+			draw_arc(Vector2.ZERO, 40.0 + 160.0 * f, 0.0, TAU, 32, Color(c, 1.0 - f), 8.0)
+			draw_arc(Vector2.ZERO, 20.0 + 100.0 * f, 0.0, TAU, 32, Color(1, 1, 1, 1.0 - f), 4.0)
+			draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		"bolt_line":   # chain lightning segment between two points
+			var to: Vector2 = data.get("to", Vector2.ZERO) - position
+			var pts := PackedVector2Array([Vector2.ZERO])
+			for k in range(1, 6):
+				var tt := float(k) / 6.0
+				pts.append(to * tt + Vector2(0, (randf() - 0.5) * 36.0 * (1.0 - tt)))
+			pts.append(to)
+			draw_polyline(pts, Color(c, 1.0 - f), 7.0 * (1.0 - f) + 2.0)
+			draw_polyline(pts, Color(1, 1, 1, 1.0 - f), 2.0)
+		"casing":  # ejected shell
+			var cd := float(data.get("dir", 1.0))
+			draw_rect(Rect2(-cd * (8.0 + 30.0 * f) - 2, -6.0 - 30.0 * f + 70.0 * f * f, 5, 3), Color("#e8c060", 1.0 - f))
 		"pillar":
 			var h := 520.0
 			draw_rect(Rect2(-float(data.get("radius", 60.0)) * (1.0 - f), -h, float(data.get("radius", 60.0)) * 2.0 * (1.0 - f), h), Color(c, 0.6 * (1.0 - f)))
