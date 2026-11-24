@@ -149,6 +149,24 @@ func _skill_useful(f: Fighter, t: Fighter, sk: SkillData, dist: float, dy: float
 			return dist < 440.0 and absf(dy) < 140.0
 		"attune":
 			return rng.randf() < 0.2
+		"riftstep":
+			return dist > 90.0 and dist < 500.0
+		"collapse":
+			return dist < float(sk.p("radius", 330)) - 20.0
+		"ward":
+			return threatened or dist < 220.0
+		"discharge":
+			return dist < float(sk.p("range", 400)) - 30.0
+		"siphon":
+			return f.health.ratio() < 0.65
+		"bubble":
+			return threatened or (dist > 120.0 and dist < 380.0)
+		"command":
+			return dist > 60.0 and dist < 500.0
+		"summon":
+			return f.mech is BeastboundMech and f.mech.res < 2.0
+		"howl":
+			return dist < float(sk.p("radius", 240)) + 40.0
 		"echo":
 			var em: ShadeweaverMech = f.mech as ShadeweaverMech
 			if em != null and em.aux > 0.0:

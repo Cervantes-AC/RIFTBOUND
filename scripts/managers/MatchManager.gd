@@ -345,6 +345,14 @@ func fx(kind: String, pos: Vector2, data: Dictionary = {}) -> void:
 		NetworkManager.send_fx(kind, pos, data)
 
 
+## Strongest zone/aura damage reduction any teammate currently grants to `target` (they do not stack).
+func zone_reduction(target: Fighter) -> float:
+	var best := 0.0
+	for f in fighters:
+		best = maxf(best, f.mech.ward_reduction_for(target))
+	return best
+
+
 func shake(amount: float) -> void:
 	_shake = maxf(_shake, amount)
 

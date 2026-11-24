@@ -30,6 +30,18 @@ static func create(id: String, fighter: Fighter) -> Mechanic:
 			m = ArcanistMech.new()
 		"shadeweaver":
 			m = ShadeweaverMech.new()
+		"riftblade":
+			m = RiftbladeMech.new()
+		"warden":
+			m = WardenMech.new()
+		"stormcaller":
+			m = StormcallerMech.new()
+		"reaper":
+			m = ReaperMech.new()
+		"chronomancer":
+			m = ChronomancerMech.new()
+		"beastbound":
+			m = BeastboundMech.new()
 		_:
 			m = Mechanic.new()
 	m.f = fighter
@@ -98,6 +110,16 @@ func hit_color(sk: SkillData) -> Color:
 ## Tag stored in hit dictionaries ("fire", "frost", ...) for combo rules.
 func element_for(_sk: SkillData) -> String:
 	return ""
+
+
+## Multiplier on how fast cooldowns tick (Chronomancer's Borrowed Time).
+func cooldown_rate() -> float:
+	return 1.0
+
+
+## Damage reduction this fighter grants to `_t` through a zone or aura (Warden).
+func ward_reduction_for(_t: Fighter) -> float:
+	return 0.0
 
 
 func fraction() -> float:

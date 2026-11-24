@@ -212,7 +212,7 @@ func _read_intent(delta: float) -> Intent:
 
 
 func _tick_timers(delta: float) -> void:
-	skills.update(delta)
+	skills.update(delta * mech.cooldown_rate())
 	mech.tick(delta)
 	ult_gain(delta * 1.0)   # slow trickle so the ultimate is always reachable
 	_coyote = maxf(_coyote - delta, 0.0)
@@ -268,6 +268,10 @@ func _step_free(delta: float, it: Intent) -> void:
 		if _try_slot(ps, it.move):
 			return
 	var rooted := has_status("root")
+	if it.down and is_on_floor() and _standing_on_platform() and not rooted:
+		_drop_t = 0.25            # stick down on a platform: drop through it
+		collision_mask = 1
+		position.y += 2.0
 	if it.jump_pressed:
 		_jump_buffer = 0.12
 	if _jump_buffer > 0.0 and not rooted:
@@ -514,6 +518,8 @@ func receive_hit(hit: Dictionary) -> bool:
 	if armored:
 		reduction = float(status_v.get("shield", 0.7))
 	dmg *= (1.0 - reduction)
+	if world != null:
+		dmg *= 1.0 - float(world.zone_reduction(self))   # Warden wards / Guardian Link
 	var dealt := health.apply_damage(dmg)
 	flash_t = 0.15
 	var from_x: float = hit.get("from_x", global_position.x - facing)

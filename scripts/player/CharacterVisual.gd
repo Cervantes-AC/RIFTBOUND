@@ -110,6 +110,33 @@ func _draw() -> void:
 				"arcanist":     # hovers slightly
 					hip_lift = 4.0 + sin(t * 2.4) * 3.0
 					arm_f = 1.0 + sin(t * 2.4) * 0.15
+				"riftblade":    # low ready stance, twitchy
+					leg_f = 0.4
+					leg_b = -0.4
+					arm_f = 1.1 + sin(t * 5.0) * 0.06
+					arm_b = -0.9
+					rot = 0.07
+				"warden":       # immovable, hammer resting
+					bob = sin(t * 1.4)
+					leg_f = 0.3
+					leg_b = -0.3
+					arm_f = 0.15
+				"stormcaller":  # staff raised, crackling jitter
+					arm_f = 2.0 + sin(t * 17.0) * 0.05
+					hip_lift = 1.5 + sin(t * 3.0) * 1.5
+				"reaper":       # hunched, slow heavy sway
+					rot = 0.14 + sin(t * 1.2) * 0.04
+					bob = sin(t * 1.5) * 2.0
+					arm_f = 0.9
+				"chronomancer": # clockwork ticking motion
+					arm_f = 1.3 + floorf(fmod(t * 2.0, 4.0)) * 0.08
+					hip_lift = 2.0 + sin(t * 2.0) * 1.5
+				"beastbound":   # crouched, ready to spring
+					bob = absf(sin(t * 3.5)) * -2.0
+					rot = 0.12
+					leg_f = 0.5
+					leg_b = -0.5
+					arm_f = 0.6
 				"shadeweaver":  # drifts, cloak trembles
 					hip_lift = 2.0 + sin(t * 1.6) * 2.0
 					rot = sin(t * 1.1) * 0.05
@@ -306,6 +333,27 @@ func _class_torso_detail(d: ClassData, cloth: Color, trim: Color) -> void:
 			draw_rect(Rect2(-9, -2, 18, 6), cloth)       # robe hem
 			draw_rect(Rect2(-9, 0, 18, 4), trim)
 			draw_rect(Rect2(-2, -28, 4, 28), trim.darkened(0.3))
+		"riftblade":
+			draw_line(Vector2(-9, -28), Vector2(9, -4), trim, 3.0)     # glowing seam across the chest
+			draw_rect(Rect2(-14, -30, 5, 20), cloth.darkened(0.4))     # short cape
+		"warden":
+			draw_rect(Rect2(-13, -32, 26, 10), trim.darkened(0.15))    # broad mantle
+			draw_rect(Rect2(-4, -18, 8, 8), trim)                      # ward sigil
+		"stormcaller":
+			draw_polyline(PackedVector2Array([Vector2(3, -28), Vector2(-3, -18), Vector2(3, -16), Vector2(-3, -5)]), trim, 3.0)
+		"reaper":
+			draw_rect(Rect2(-14, -28, 7, 38), cloth.darkened(0.45))    # long ragged coat
+			for rib in 3:
+				draw_rect(Rect2(-6, -24 + rib * 6, 12, 2), trim)
+		"chronomancer":
+			draw_circle(Vector2(0, -17), 6.0, trim)                    # chest dial
+			draw_line(Vector2(0, -17), Vector2(0, -22), OUT, 2.0)
+			draw_line(Vector2(0, -17), Vector2(4, -17), OUT, 2.0)
+			draw_rect(Rect2(-9, -2, 18, 6), cloth)
+		"beastbound":
+			draw_rect(Rect2(-12, -32, 24, 9), Color("#5a4630"))        # fur collar
+			for tuft in 5:
+				draw_rect(Rect2(-12 + tuft * 5, -24, 3, 4), Color("#5a4630"))
 		"shadeweaver":
 			draw_rect(Rect2(-11, -28, 5, 30), cloth.darkened(0.3))  # tattered cloak
 			draw_rect(Rect2(-9, -14, 18, 3), trim)
@@ -340,6 +388,37 @@ func _headgear(d: ClassData) -> void:
 			_box(Rect2(-4, -88, 8, 14), d.color.lightened(0.1))
 			draw_rect(Rect2(-8, -66, 16, 3), d.accent)
 			draw_rect(Rect2(-10, -50, 5, 12), hair)       # long hair
+		"riftblade":
+			_box(Rect2(-10, -62, 20, 9), hair)
+			draw_rect(Rect2(-9, -45, 18, 12), d.color.darkened(0.35))  # face mask
+			draw_rect(Rect2(1, -50, 10, 4), d.accent)                  # glowing visor
+			draw_rect(Rect2(-20, -58, 11, 4), hair)                    # swept tail
+		"warden":
+			_box(Rect2(-12, -66, 24, 14), d.color)                     # open helm
+			draw_rect(Rect2(-12, -52, 5, 18), d.color.darkened(0.2))
+			draw_rect(Rect2(-16, -72, 8, 10), d.accent)                # wing crests
+			draw_rect(Rect2(8, -72, 8, 10), d.accent)
+		"stormcaller":
+			_box(Rect2(-10, -62, 20, 8), hair)
+			for spike in 4:                                            # hair standing on end
+				draw_rect(Rect2(-10 + spike * 6, -74 + (spike % 2) * 5, 4, 14), hair)
+			draw_rect(Rect2(-10, -55, 20, 3), d.color)
+		"reaper":
+			_box(Rect2(-13, -66, 26, 28), d.color.darkened(0.3))       # cowl
+			draw_rect(Rect2(-2, -54, 13, 18), Color("#e8e0d0"))        # bone mask
+			draw_rect(Rect2(3, -50, 4, 5), d.color)
+			draw_rect(Rect2(4, -40, 6, 2), OUT)
+		"chronomancer":
+			_box(Rect2(-10, -62, 20, 9), hair)
+			_box(Rect2(-7, -72, 14, 12), d.color)
+			draw_arc(Vector2(5, -47), 6.0, 0.0, TAU, 12, d.accent, 2.0)   # monocle
+			draw_arc(Vector2(0, -50), 19.0, PI * 1.1, PI * 1.9, 14, d.accent, 2.0)
+		"beastbound":
+			_box(Rect2(-11, -63, 22, 11), hair)
+			draw_rect(Rect2(-13, -56, 7, 20), hair)
+			draw_colored_polygon(PackedVector2Array([Vector2(-11, -62), Vector2(-8, -74), Vector2(-2, -62)]), Color("#5a4630"))  # pelt ears
+			draw_colored_polygon(PackedVector2Array([Vector2(2, -62), Vector2(8, -74), Vector2(11, -62)]), Color("#5a4630"))
+			draw_rect(Rect2(-1, -43, 11, 2), d.color.darkened(0.3))    # war paint
 		"shadeweaver":
 			_box(Rect2(-12, -64, 24, 26), d.color.darkened(0.2))   # deep hood
 			draw_rect(Rect2(0, -52, 12, 14), Color("#0a0610"))
@@ -390,6 +469,26 @@ func _weapon(d: ClassData, hand: Vector2, ang: float, f: Fighter, _back_hand: Ve
 			draw_circle(Vector2(64, 0), glow + 5.0, Color(c, 0.3))
 			draw_circle(Vector2(64, 0), glow, c)
 			draw_circle(Vector2(64, 0), 4.0, Color.WHITE)
+		"dual_blade":
+			_box(Rect2(2, -3, 40, 5), c)
+			draw_rect(Rect2(6, -8, 30, 3), Color(c, 0.45))
+			_box(Rect2(0, -8, 6, 15), Color("#1a3a40"))
+			_box(Rect2(-28, 3, 24, 4), c)                          # off-hand blade, reversed
+		"hammer":
+			_box(Rect2(-8, -3, 50, 6), Color("#7a5230"))
+			_box(Rect2(38, -17, 20, 34), c)
+			draw_rect(Rect2(44, -13, 7, 26), d.color)
+		"clock_staff":
+			_box(Rect2(-14, -3, 66, 6), Color("#8a6a3a"))
+			var spin := f.anim_time * 2.0
+			draw_circle(Vector2(62, 0), 14.0, OUT)
+			draw_arc(Vector2(62, 0), 11.0, 0.0, TAU, 20, c, 4.0)
+			draw_line(Vector2(62, 0), Vector2(62, 0) + Vector2(cos(spin), sin(spin)) * 9.0, Color.WHITE, 2.0)
+			draw_line(Vector2(62, 0), Vector2(62, 0) + Vector2(cos(spin * 0.1), sin(spin * 0.1)) * 6.0, Color.WHITE, 2.0)
+		"axe":
+			_box(Rect2(-6, -3, 44, 6), Color("#6b4a2e"))
+			draw_colored_polygon(PackedVector2Array([Vector2(28, -4), Vector2(34, -21), Vector2(50, -14), Vector2(50, 8), Vector2(34, 12), Vector2(32, 2)]), OUT)
+			draw_colored_polygon(PackedVector2Array([Vector2(31, -5), Vector2(36, -17), Vector2(47, -12), Vector2(47, 6), Vector2(36, 9)]), c)
 		"scythe":
 			_box(Rect2(-14, -3, 70, 6), Color("#2a2036"))
 			draw_colored_polygon(PackedVector2Array([Vector2(50, -4), Vector2(56, -30), Vector2(80, -36), Vector2(66, -16), Vector2(58, 2)]), OUT)

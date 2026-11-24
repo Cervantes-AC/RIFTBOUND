@@ -99,3 +99,19 @@ shown as locked "PLANNED" entries (not selectable).
 * **Tests:** new `tests/MechTest` (80 checks); `SimTest` now 204; `Balance` takes `ROUNDS=n` from the environment.
 * Bugs found by tests/runs: TouchControls had size 0 (anchor preset inside `_ready`), SimTest assumed no resource gates,
   Shadeweaver 0% win rate (AI range logic + no baseline Shadow).
+
+## 2026-11-25 - Milestone 4: stick jump and the full twelve-fighter roster
+
+* **Controls:** jump button removed; stick up jumps, stick down drops through platforms; W also jumps on keyboard.
+* **New fighters:** Riftblade, Warden, Stormcaller, Reaper, Chronomancer, Beastbound - each with a mechanic class, five
+  abilities, passive, visuals, portrait, AI rules, guide text and tests. New ability kinds in `CombatComponent`;
+  `MatchManager.zone_reduction` for Warden auras. Lobby and select grids fit twelve cards.
+* **Verified:** CheckAll, `SimTest` 281, `MechTest` 116, two-process `NetTest`, screenshots. Balance is uneven (see
+  `docs/COMBAT_REDESIGN.md` section 4). Not tested on phones or two devices.
+
+## 2026-11-25 - Wi-Fi join without typing an IP
+
+* `LanDiscovery`: guest broadcasts on UDP 7778, a waiting host replies; one host joins automatically, several are listed. Manual IP stays as a fallback.
+* Fixed manual IP entry: the decimal keypad allowed only one period (now the URL keyboard).
+* Android preset: `change_wifi_multicast_state` enabled (needed to receive broadcasts). Rebuild the APK.
+* `NetTest -- find` passes between two processes on one PC. Not tested between two phones.

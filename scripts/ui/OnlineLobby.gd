@@ -1,8 +1,13 @@
 extends Control
-## Same-Wi-Fi lobby: host (shows IP) or join (type the host's IP). Real ENet connection, no simulation.
+## Same-Wi-Fi lobby: host, or join (the host is found automatically; typing the IP is only a fallback).
+## Real ENet connection, no simulation.
 ## All failures show a readable message and keep the player in the lobby (lab requirement R8).
 
 enum View { CHOOSE, HOST, JOIN }
+
+const QUERY_EVERY := 0.7
+const COLLECT_TIME := 1.0      # after the first reply, wait this long in case a second host also answers
+const GIVE_UP_HINT := 6.0
 
 var _view: View = View.CHOOSE
 var _body: VBoxContainer
@@ -15,6 +20,13 @@ var _guest_info: Label
 var _host_info: Label
 var _arena_label: Label
 var _error_text := ""
+var _search := LanDiscovery.new()
+var _searching := false
+var _search_age := 0.0
+var _query_wait := 0.0
+var _first_found_at := -1.0
+var _found := PackedStringArray()
+var _host_list: VBoxContainer
 
 
 func _ready() -> void:
@@ -50,6 +62,7 @@ func _ready() -> void:
 
 
 func _exit_tree() -> void:
+	_stop_search()
 	var nm := NetworkManager
 	for pair in [[nm.status_changed, _on_status], [nm.connection_failed, _on_failed], [nm.guest_joined, _on_guest_joined],
 			[nm.lobby_changed, _refresh_room], [nm.disconnected, _on_disconnected], [nm.match_should_start, _on_match_start],
@@ -59,6 +72,8 @@ func _exit_tree() -> void:
 
 
 func _clear_body() -> void:
+	_stop_search()
+	_host_list = null
 	for c in _body.get_children():
 		_body.remove_child(c)
 		c.queue_free()
@@ -76,7 +91,7 @@ func _show_choose() -> void:
 	_view = View.CHOOSE
 	_clear_body()
 	_body.alignment = BoxContainer.ALIGNMENT_CENTER
-	var note := PixelUI.wrap_label("Both phones must be on the same Wi-Fi network (or one phone's hotspot).\nOne player hosts, the other joins with the host's IP address.", 12, PixelUI.C_DIM, HORIZONTAL_ALIGNMENT_CENTER)
+	var note := PixelUI.wrap_label("Both phones must be on the same Wi-Fi network (or one phone's hotspot).\nOne player hosts, the other taps Join - the match is found automatically.", 12, PixelUI.C_DIM, HORIZONTAL_ALIGNMENT_CENTER)
 	note.custom_minimum_size = Vector2(900, 0)
 	_body.add_child(note)
 	var row := HBoxContainer.new()
@@ -125,7 +140,80 @@ func _show_host() -> void:
 	_on_status(NetworkManager.status)
 
 
+## Join: search the Wi-Fi for hosts. One host -> connect straight away; several -> pick one.
 func _show_join() -> void:
+	_view = View.JOIN
+	_error_text = ""
+	_clear_body()
+	_body.alignment = BoxContainer.ALIGNMENT_CENTER
+	_body.add_child(PixelUI.label("Looking for a match on this Wi-Fi...", 20, PixelUI.C_TEXT, HORIZONTAL_ALIGNMENT_CENTER))
+	_host_list = VBoxContainer.new()
+	_host_list.add_theme_constant_override("separation", 12)
+	_host_list.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_body.add_child(_host_list)
+	var manual := PixelUI.button("ENTER IP MANUALLY", PixelUI.C_PANEL_LIGHT, 16, Vector2(420, 60))
+	manual.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	manual.pressed.connect(func():
+		AudioManager.play_sfx("click")
+		_show_manual_join())
+	_body.add_child(manual)
+	_status.text = "Ask the other player to tap HOST MATCH."
+	_status.add_theme_color_override("font_color", PixelUI.C_TEXT)
+	_found = PackedStringArray()
+	_search_age = 0.0
+	_query_wait = 0.0
+	_first_found_at = -1.0
+	_searching = _search.start_search()
+	if not _searching:
+		_status.text = "Could not search the network. Use ENTER IP MANUALLY."
+
+
+func _stop_search() -> void:
+	_searching = false
+	_search.stop()
+
+
+func _process(delta: float) -> void:
+	if not _searching:
+		return
+	_search_age += delta
+	_query_wait -= delta
+	if _query_wait <= 0.0:
+		_query_wait = QUERY_EVERY
+		_search.send_query()
+	for ip in _search.poll_search():
+		if not _found.has(ip):
+			_found.append(ip)
+			if _first_found_at < 0.0:
+				_first_found_at = _search_age
+			elif _search_age - _first_found_at > COLLECT_TIME:
+				_add_host_button(ip)
+	if _first_found_at >= 0.0 and _search_age - _first_found_at >= COLLECT_TIME and _host_list.get_child_count() == 0:
+		if _found.size() == 1:
+			_join_found(_found[0])
+		else:
+			_status.text = "More than one match found. Pick one."
+			for ip in _found:
+				_add_host_button(ip)
+	elif _found.is_empty() and _search_age > GIVE_UP_HINT:
+		_status.text = "No match yet. Same Wi-Fi? Host waiting? Otherwise use ENTER IP MANUALLY."
+
+
+func _add_host_button(ip: String) -> void:
+	var b := PixelUI.button("JOIN %s" % ip, Color("#3a5aa8"), 20, Vector2(520, 66))
+	b.pressed.connect(func():
+		AudioManager.play_sfx("click")
+		_join_found(ip))
+	_host_list.add_child(b)
+
+
+func _join_found(ip: String) -> void:
+	_stop_search()
+	if NetworkManager.join_game(ip):
+		_status.add_theme_color_override("font_color", PixelUI.C_TEXT)
+
+
+func _show_manual_join() -> void:
 	_view = View.JOIN
 	_error_text = ""
 	_clear_body()
@@ -140,7 +228,7 @@ func _show_join() -> void:
 	_ip_edit.placeholder_text = "192.168.1.23"
 	_ip_edit.text = SaveManager.last_ip
 	_ip_edit.max_length = 15
-	_ip_edit.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_NUMBER_DECIMAL
+	_ip_edit.virtual_keyboard_type = LineEdit.KEYBOARD_TYPE_URL   # the decimal keypad allows only one "."
 	_ip_edit.custom_minimum_size = Vector2(520, 72)
 	_ip_edit.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_ip_edit.add_theme_font_override("font", PixelUI.FONT)

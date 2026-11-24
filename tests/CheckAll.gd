@@ -27,7 +27,7 @@ func _collect(dir_path: String) -> Array:
 	if d == null:
 		return out
 	for sub in d.get_directories():
-		if sub.begins_with(".") or sub == "docs":
+		if sub.begins_with(".") or sub == "docs" or sub == "android" or sub == "build":   # generated Android build template is not game code
 			continue
 		out.append_array(_collect(dir_path.path_join(sub)))
 	for f in d.get_files():

@@ -4,6 +4,7 @@ extends Node
 ##   godot --headless --path . res://tests/NetTest.tscn -- join 127.0.0.1
 ##   godot --headless --path . res://tests/NetTest.tscn -- fail            (join with nobody listening)
 ##   godot --headless --path . res://tests/NetTest.tscn -- badip           (invalid address)
+##   godot --headless --path . res://tests/NetTest.tscn -- find            (discover a running host, no IP typed)
 ## Each process prints NETTEST lines and exits 0 on success, 1 on failure.
 
 var role := ""
@@ -35,6 +36,25 @@ func _ready() -> void:
 			await _run_host()
 		"join":
 			await _run_guest()
+		"find":
+			var search := LanDiscovery.new()
+			search.start_search()
+			var found := PackedStringArray()
+			for i in 40:
+				if i % 5 == 0:
+					search.send_query()   # the real broadcast targets, no address typed
+				await get_tree().create_timer(0.1).timeout
+				found.append_array(search.poll_search())
+				if not found.is_empty():
+					break
+			search.stop()
+			if found.is_empty():
+				fail("no host discovered by broadcast")
+			else:
+				ip = found[0]
+				say("OK discovered host at %s by broadcast" % ip)
+				role = "join"
+				await _run_guest()
 		"fail":
 			await _run_fail()
 		"badip":

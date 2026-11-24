@@ -1,8 +1,7 @@
 # Combat, character and control redesign
 
-Date: 2026-11-25. Scope decision (allowed by the brief): **six fully playable, tested fighters**. The six new
-fighters are fully *designed* below and shown in the roster as **PLANNED / locked**. They cannot be selected to
-play, and nothing in the game pretends otherwise.
+Date: 2026-11-25. **All twelve fighters are implemented and playable.** (An earlier milestone shipped six and showed the
+other six as locked; they were implemented afterwards.)
 
 ## 1. Audit of the previous system
 | Area | State before | Decision |
@@ -18,7 +17,7 @@ play, and nothing in the game pretends otherwise.
 
 ## 2. Roster (12 entries)
 ### Vanguard - The Unbroken Wall  [PLAYABLE]
-* Role: Tank / Protector. Difficulty 1/5. HP 175, speed 215, jumps 1.
+* Role: Tank / Protector. Difficulty 1/5. HP 162, speed 215, jumps 1.
 * Lore: Last captain of a sunken garrison, Brannoch holds the line because nobody else will. Every blow he endures is a debt the enemy will pay.
 * Mechanic **BULWARK**: Taking damage charges the Bulwark meter. Spend it with Retaliate for a counter-strike that grows with the meter.
 * Passive **Stalwart**: Knockback taken is reduced by 25%. At 50+ Bulwark, damage taken is reduced by 10%.
@@ -65,53 +64,53 @@ play, and nothing in the game pretends otherwise.
 * Strengths: Slippery, strong control, great reposition options. Weaknesses: Needs movement to fuel Shadow. Modest raw damage. Hardest to play.
 * Strategy: Keep moving, chain a target, Echo behind them, Eclipse to lock the whole group briefly.
 
-### Riftblade - Seam-Walker  [PLANNED (not implemented)]
+### Riftblade - Seam-Walker  [PLAYABLE]
 * Role: Assassin / Repositioner. Difficulty 4/5. HP 130, speed 280, jumps 2.
-* Lore: Cuts doors in the air and walks through them.
-* Mechanic **RIFT MARKERS**: Place two linked rift gates; stepping through one exits the other with a free slash from behind.
-* Passive **Phase Edge**: Attacks from behind deal bonus damage.
-* Strengths: Unexpected angles. Weaknesses: Needs setup time.
-* Strategy: Planned.
+* Lore: Kael Nox cuts doors in the air and walks through them. Where he steps out, nobody is looking.
+* Mechanic **PHASE**: Phase builds slowly and on every hit. Rift Step costs 40 and tears a rift to exit BEHIND the nearest enemy with a backstab. Hits from behind deal +30%.
+* Passive **Phase Edge**: Attacks from behind the target deal +30% damage.
+* Strengths: Unexpected angles, high burst from behind, great mobility. Weaknesses: Low defence; needs Phase for Rift Step; punished if the exit is read.
+* Strategy: Poke with Dimensional Slash, Phase Dash through attacks, Rift Step behind them, Rift Cut, repeat. Ultimate gathers a group.
 
-### Warden - Keeper of the Line  [PLANNED (not implemented)]
-* Role: Controller / Support. Difficulty 2/5. HP 165, speed 220, jumps 1.
-* Lore: Plants wards where friends will stand.
-* Mechanic **WARDS**: Place defensive zones that reduce or redirect incoming damage for allies inside.
-* Passive **Guardian Link**: Allies near the Warden take less damage.
-* Strengths: Team protection. Weaknesses: Low personal damage.
-* Strategy: Planned.
+### Warden - Keeper of the Line  [PLAYABLE]
+* Role: Controller / Support. Difficulty 2/5. HP 165, speed 235, jumps 1.
+* Lore: Hesper Dray plants wards where friends will stand. She has never lost someone standing in one.
+* Mechanic **WARDS**: Ward energy (+3/s) pays for Guardian Ward: a zone where you and allies take 35% less damage. The ultimate dome is bigger (60%).
+* Passive **Guardian Link**: Allies within 300px take 10% less damage (the ward stacks on top).
+* Strengths: Best team protection, strong peel, very durable. Weaknesses: Low damage, slow, ward can be walked away from.
+* Strategy: Plant a ward where the fight will be, stand in it, Pulse enemies away. Aegis Dome turns a team fight.
 
-### Stormcaller - Thunder's Voice  [PLANNED (not implemented)]
-* Role: Chain Caster. Difficulty 3/5. HP 100, speed 235, jumps 1.
-* Lore: Speaks the language of the storm.
-* Mechanic **CHARGE**: Build electrical charge; discharge it as chain lightning that jumps between enemies.
-* Passive **Static Field**: Standing near enemies builds charge.
-* Strengths: Groups of enemies. Weaknesses: Weak 1v1 when uncharged.
-* Strategy: Planned.
+### Stormcaller - Thunder's Voice  [PLAYABLE]
+* Role: Caster / Chain Lightning. Difficulty 3/5. HP 100, speed 235, jumps 1.
+* Lore: Oriel Vane speaks the language of storms and the storms answer, sometimes too loudly.
+* Mechanic **CHARGE**: Spark and Lightning Bolt build Charge. Discharge spends it all as chain lightning that jumps up to 3 enemies.
+* Passive **Static Field**: Standing within 350px of an enemy builds +4 Charge per second.
+* Strengths: Excellent against groups, fast bolts, builds power by fighting. Weaknesses: Fragile, weak when uncharged, Discharge has a wind-up.
+* Strategy: Stay near the fight, spark and bolt to charge, Discharge on grouped enemies, Tempest to finish.
 
-### Reaper - Harvest Bound  [PLANNED (not implemented)]
-* Role: Bruiser / Sustain. Difficulty 3/5. HP 150, speed 240, jumps 1.
-* Lore: Collects what the battlefield leaves behind.
-* Mechanic **SOULS**: Gain limited soul energy; convert it to a capped heal or a burst of damage.
-* Passive **Last Rites**: Defeated enemies release souls.
-* Strengths: Sustain in long fights. Weaknesses: Healing is capped.
-* Strategy: Planned.
+### Reaper - Harvest Bound  [PLAYABLE]
+* Role: Bruiser / Sustain. Difficulty 3/5. HP 150, speed 260, jumps 1.
+* Lore: Mourne collects what the battlefield leaves behind, and never takes more than the field can spare.
+* Mechanic **SOULS**: Hits gather Souls. Spend them on Soul Siphon for a heal, or hit with Soul Rend for burst. All healing shares a limit of about 25 HP per 10 seconds.
+* Passive **Soul Tithe**: Basic attacks heal 8% of the damage dealt (inside the healing limit).
+* Strengths: Wins long fights, flexible heal or burst, tough. Weaknesses: Healing is capped, slow ranged approach, needs to keep hitting.
+* Strategy: Fill Souls with sweeps, Soul Rend a staggered target, Siphon when low. Death's Harvest heals from groups.
 
-### Chronomancer - Borrowed Seconds  [PLANNED (not implemented)]
-* Role: Tempo Controller. Difficulty 5/5. HP 105, speed 235, jumps 1.
-* Lore: Spends tomorrow's seconds today.
-* Mechanic **TEMPO**: Slow chosen enemies or projectiles using time energy; rewind a short step of movement. Deterministic, never unlimited.
-* Passive **Borrowed Time**: Cooldowns tick slightly faster.
-* Strengths: Tempo control. Weaknesses: Complex.
-* Strategy: Planned.
+### Chronomancer - Borrowed Seconds  [PLAYABLE]
+* Role: Tempo / Controller. Difficulty 5/5. HP 105, speed 235, jumps 1.
+* Lore: Tamsin Orrel spends tomorrow's seconds today, and always stays one payment ahead of the interest.
+* Mechanic **TEMPO**: Time energy (+8/s) pays for Time Snare (slow), Temporal Bubble (slows enemies and enemy projectiles) and Time Skip. Everything is deterministic and costs energy.
+* Passive **Borrowed Time**: All your cooldowns tick 15% faster.
+* Strengths: Controls tempo, great at denying projectiles, flexible movement. Weaknesses: Low damage and health, energy gates everything.
+* Strategy: Snare, Bubble the lane, Skip away from trouble. Hourglass for the decisive push.
 
-### Beastbound - Pack Mother  [PLANNED (not implemented)]
+### Beastbound - Pack Mother  [PLAYABLE]
 * Role: Summoner / Brawler. Difficulty 3/5. HP 140, speed 250, jumps 1.
-* Lore: The wolf follows; the wolf bites; the wolf is family.
-* Mechanic **COMPANION**: A companion wolf attacks on command for a limited duration.
-* Passive **Pack Bond**: Companion shares a little of your damage bonus.
-* Strengths: Two-front pressure. Weaknesses: Companion can be killed.
-* Strategy: Planned.
+* Lore: Runa Hale never fights alone. The wolf follows, the wolf bites, the wolf is family.
+* Mechanic **COMPANION**: Call of the Pack summons a wolf for 10s that follows you and bites enemies. Sic 'Em orders a lunge. Alpha Howl sends the pack into a 6s frenzy.
+* Passive **Pack Bond**: While the wolf is out you move 8% faster and deal 10% more damage.
+* Strengths: Two-front pressure, strong close range, ultimate burst. Weaknesses: Weak without the wolf; the wolf is time-limited; lunge can be dodged.
+* Strategy: Call the wolf early, Pounce in, Sic 'Em, Claw Slash. Howl when the wolf is on top of them.
 
 
 ## 3. Ability framework
@@ -191,33 +190,102 @@ marked area; stun is capped (see 6); effects are drawn with transparency and sho
 | Mobility | Rift Blink | Blink through the Rift and burst on exit. Gives +10 Shadow. | cd 6.0s |
 | Ultimate | Eclipse | A wave of darkness roots every enemy nearby for 1.3s after a clear wind-up. | Ultimate |
 
+**Riftblade**
+
+| Slot | Ability | Effect | Cost |
+|---|---|---|---|
+| Basic | Rift Cut | Quick dimensional cut. Hits from behind the target deal +30%. | repeatable |
+| Special | Dimensional Slash | Fires a crescent of torn space that pierces two enemies. | cd 5.0s |
+| Signature | Rift Step | Open a rift and step out BEHIND the nearest enemy with an immediate backstab (+30% from behind). | 40 Phase |
+| Mobility | Phase Dash | Slip through space in a short invulnerable dash. | cd 3.5s |
+| Ultimate | Rift Collapse | A collapsing rift drags every enemy nearby toward you and crushes them. | Ultimate |
+
+**Warden**
+
+| Slot | Ability | Effect | Cost |
+|---|---|---|---|
+| Basic | Guard Strike | Shield-and-hammer strike with solid knockback. | repeatable |
+| Special | Sanctuary Pulse | Burst of holy force that shoves nearby enemies away. | cd 6.0s |
+| Signature | Guardian Ward | Plant a ward for 6s: you and allies inside take 35% less damage. | 30 Ward energy |
+| Mobility | Shield Step | Short protected step. | cd 3.0s |
+| Ultimate | Aegis Dome | A great dome for 5s: allies inside take 60% less damage; enemies nearby are blasted back. | Ultimate |
+
+**Stormcaller**
+
+| Slot | Ability | Effect | Cost |
+|---|---|---|---|
+| Basic | Spark | Small bolt of electricity. Every hit adds Charge. | repeatable |
+| Special | Lightning Bolt | Very fast bolt. Adds extra Charge. | cd 3.0s |
+| Signature | Discharge | Spend ALL Charge: chain lightning strikes up to 3 enemies in range, stronger with more Charge. | 30+ Charge |
+| Mobility | Static Dash | Dash in a flash of static. Gives +20 Charge. | cd 4.0s |
+| Ultimate | Tempest | A storm settles over the target and strikes six times. | Ultimate |
+
+**Reaper**
+
+| Slot | Ability | Effect | Cost |
+|---|---|---|---|
+| Basic | Scythe Sweep | Wide sweep. Hits give Souls and heal a little (capped). | repeatable |
+| Special | Soul Rend | Heavy reaping arc with +10 extra Souls on hit. | cd 5.0s |
+| Signature | Soul Siphon | Spend ALL Souls to heal (8 + 20% of Souls, max 24). Total healing is limited over time. | 30+ Souls |
+| Mobility | Wraith Step | Drift forward as a wraith, untouchable for a moment. | cd 5.0s |
+| Ultimate | Death's Harvest | Reap everything nearby; heal 40% of the damage dealt (inside the healing limit). | Ultimate |
+
+**Chronomancer**
+
+| Slot | Ability | Effect | Cost |
+|---|---|---|---|
+| Basic | Chrono Bolt | Bolt of compressed seconds. Hits restore a little Time energy. | repeatable |
+| Special | Time Snare | Slows the target to half speed for 3s. | 25 Time |
+| Signature | Temporal Bubble | A bubble for 4s: enemies inside are slowed and enemy projectiles crawl. | 35 Time |
+| Mobility | Time Skip | Skip forward or back a short distance (move with the stick). | 20 Time |
+| Ultimate | Hourglass | Time stutters: nearby enemies are slowed for 3s while you gain haste and 3s off every cooldown. | Ultimate |
+
+**Beastbound**
+
+| Slot | Ability | Effect | Cost |
+|---|---|---|---|
+| Basic | Claw Slash | Quick axe-claw slash. | repeatable |
+| Special | Sic 'Em | Command the wolf to lunge at the nearest enemy. Needs the wolf out. | Wolf required |
+| Signature | Call of the Pack | Call (or refresh) your wolf for 10s. It follows you and bites nearby enemies. | cd 12.0s |
+| Mobility | Pounce | Leap forward with the claws out. | cd 4.5s |
+| Ultimate | Alpha Howl | Howl: knocks back nearby enemies, calls the wolf, and sends the pack into a 6s FRENZY (wolf x2 damage, faster bites, you gain haste). | Ultimate |
+
 
 ## 4. Balance table (data-driven, generated from `resources/*.json`)
 | Class | HP | Speed | Jumps | Basic (dmg / cd) | Special | Signature | Mobility cd | Ultimate | Resource |
 |---|---|---|---|---|---|---|---|---|---|
-| Vanguard | 175 | 215 | 1x | Shield Bash 9 / 0.50s | Ground Breaker 18 / 8.0s | Retaliate 14 / 2.0s | Shield Rush / 6.5s | Titan's Bastion 12 | BULWARK |
+| Vanguard | 162 | 215 | 1x | Shield Bash 8 / 0.50s | Ground Breaker 16 / 8.0s | Retaliate 14 / 2.0s | Shield Rush / 6.5s | Titan's Bastion 12 | BULWARK |
 | Duelist | 145 | 310 | 2x | Rapier Thrust 8 / 0.30s | Quick Slash 8 x3 / 4.0s | Phantom Step - / 7.5s | Sidestep / 2.4s | Thousand Cuts 6 x8 | MOMENTUM |
 | Ranger | 95 | 245 | 1x | Arrow 7 / 0.50s | Piercing Shot 20 / 6.0s | Hunter's Mark 3 / 8.0s | Shadow Dash / 6.0s | Arrow Storm 6 x10 ticks | HUNTER'S MARK |
 | Gunslinger | 100 | 260 | 1x | Pistol Shot 5 / 0.34s | Quick Burst 6 x4 / 4.0s | Explosive Round 12 (+16 blast) / 8.0s | Tactical Roll / 5.0s | Dead Eye 6 x6 | AMMO |
 | Arcanist | 95 | 225 | 1x | Elemental Orb 8 / 0.55s | Arcane Bolt 17 / 3.5s | Attune - / 0.7s | Arcane Slip / 5.0s | Cataclysm 38 | ELEMENTS |
 | Shadeweaver | 135 | 255 | 1x | Void Lash 12 / 0.34s | Binding Chains 14 / 7.0s | Shadow Echo - / 0.7s | Rift Blink / 6.0s | Eclipse 26 | SHADOW |
+| Riftblade | 130 | 280 | 2x | Rift Cut 8 / 0.30s | Dimensional Slash 14 / 5.0s | Rift Step 16 / 3.0s | Phase Dash / 3.5s | Rift Collapse 22 | PHASE |
+| Warden | 165 | 235 | 1x | Guard Strike 12 / 0.42s | Sanctuary Pulse 14 / 6.0s | Guardian Ward - / 10.0s | Shield Step / 3.0s | Aegis Dome 10 | WARDS |
+| Stormcaller | 100 | 235 | 1x | Spark 5 / 0.45s | Lightning Bolt 12 / 3.0s | Discharge 10 / 6.0s | Static Dash / 4.0s | Tempest 9 x6 ticks | CHARGE |
+| Reaper | 150 | 260 | 1x | Scythe Sweep 12 / 0.40s | Soul Rend 19 / 5.0s | Soul Siphon - / 8.0s | Wraith Step / 5.0s | Death's Harvest 22 | SOULS |
+| Chronomancer | 105 | 235 | 1x | Chrono Bolt 6 / 0.50s | Time Snare 8 / 4.0s | Temporal Bubble - / 9.0s | Time Skip / 4.5s | Hourglass 14 | TEMPO |
+| Beastbound | 140 | 250 | 1x | Claw Slash 9 / 0.40s | Sic 'Em 14 / 5.0s | Call of the Pack - / 12.0s | Pounce / 4.5s | Alpha Howl 10 | COMPANION |
 
 Ultimate requirement for everyone: 100 meter (about 80 damage dealt plus 40 taken, plus 1 per second). AI fights last about 11 s on average; ultimate frequency in real play still needs human playtesting.
-AI-vs-AI sweep (`tests/Balance.tscn`, 8 rounds per pairing, noisy): average win rate Vanguard ~75%, Gunslinger ~62%,
-Duelist ~45%, Ranger ~45%, Arcanist ~37%, Shadeweaver ~35% (last sweep, before the final Vanguard nerf). The AI cannot use the Shadeweaver's echo, Arcanist's
-element planning or the Ranger's mark as a human can, so these three are expected to feel stronger in human hands.
-Vanguard was nerfed once (Retaliate scaling, Bulwark gain). Revisit after human playtests.
+Latest AI-vs-AI sweep (`ROUNDS=3`, `tests/Balance.tscn`, 396 fights, very noisy at 3 rounds per pairing), average
+win rate: Vanguard 66, Beastbound 66, Arcanist 63, Gunslinger 60, Ranger 54, Riftblade 51, Shadeweaver 42,
+Duelist 39, Stormcaller 39, Warden 27, Reaper 27, Chronomancer 15 (percent).
+**The roster is not balanced yet.** Chronomancer, Warden and Reaper are clearly behind in AI play. Part of that is the AI
+(it cannot plan bubbles or wards, and Warden's team value does not show in 1v1), part may be real. Tune after human
+playtests. The Vanguard was nerfed and Warden/Reaper buffed once during this pass.
 
 ## 5. Controls (Android landscape)
 Presets (`ControlLayout`): **Standard** (button radius 46-62) and **Compact** (38-54).
-* Left: floating joystick (anywhere in the left half) and JUMP at the bottom left.
+* Left: floating joystick (anywhere in the left half). **There is no jump button:** push the stick up to jump (again for a
+  double jump), pull it down on a platform to drop through.
 * Right: a fan around ATTACK (largest button): MOBILITY above, SIGNATURE up-left, SPECIAL left, ULTIMATE far left
   (meter ring, pulses gold when ready). Nothing sits in the top 40% of the screen, so the arena stays visible.
 * Cooldown sweep + seconds, red ring when off cooldown but missing resource, press animation, opacity setting.
 * **Control editor** (Settings > Touch controls): presets, SIZE 0.7-1.35, OPACITY, STICK sensitivity, drag any button,
   RESET. Saved in `user://save.cfg` section `[controls]` and loaded at start (verified by `MechTest`).
 * Touch bounce guard: the same button ignores a second press within 70 ms; each finger is tracked by index.
-* Keyboard (desktop testing): A/D move, SPACE jump, J attack, U special, I signature, L mobility, O ultimate.
+* Keyboard (desktop testing): A/D move, W or SPACE jump, S drop, J attack, U special, I signature, L mobility, O ultimate.
 
 ## 6. Movement and combat input
 * Coyote time 0.1 s and jump buffer 0.12 s (existing, kept). **New:** ability input buffer 0.2 s.
@@ -231,7 +299,7 @@ Presets (`ControlLayout`): **Standard** (button radius 46-62) and **Compact** (3
   attacks) are **not** implemented.
 
 ## 7. Character guide, training room, selection
-* **Character select:** 12 cards (6 playable, 6 locked "PLANNED"), big animated preview, title, role, difficulty,
+* **Character select:** 12 playable cards, big animated preview, title, role, difficulty,
   health/damage/speed/jump bars, mechanic + passive name and all five abilities. GUIDE opens the full move list.
 * **Move guide** (`MoveGuide`): lore, mechanic, passive, strengths, weaknesses, strategy, per-ability input/key/effect/
   cost/suggested use, class combos. Opened from Character Select, the pause menu and the training room.
@@ -247,7 +315,7 @@ Presets (`ControlLayout`): **Standard** (button radius 46-62) and **Compact** (3
 | CombatController | `CombatComponent` |
 | InputController | `Intent` + `LocalController` / `AIController` / `RemoteController`; buffering and cancels in `Fighter` |
 | TouchControls | `TouchControls`, `ControlLayout`, `ControlEditor` |
-| ResourceManager | `Mechanic` base + `VanguardMech`, `DuelistMech`, `RangerMech`, `GunslingerMech`, `ArcanistMech`, `ShadeweaverMech` |
+| ResourceManager | `Mechanic` base + `VanguardMech`, `DuelistMech`, `RangerMech`, `GunslingerMech`, `ArcanistMech`, `ShadeweaverMech`, `RiftbladeMech`, `WardenMech`, `StormcallerMech`, `ReaperMech`, `ChronomancerMech`, `BeastboundMech` |
 | CooldownManager | `SkillManager` (5 slots) |
 | ComboManager | combo fields and rules inside `Fighter` (no separate class; kept small on purpose) |
 | AnimationController | `CharacterVisual` (shared skeleton, per-class idle/victory/poses) + `MechOverlay` (mechanic feedback) + `Fx` |
@@ -263,7 +331,11 @@ The guest never decides damage, resources or results. **Two-device testing was n
 testing (`NetTest`) passes.
 
 ## 10. Known gaps (honest list)
-* Six fighters are planned, not implemented (Riftblade, Warden, Stormcaller, Reaper, Chronomancer, Beastbound).
+* Beastbound's wolf is a host-simulated entity without a physics body: it cannot be hit or killed, only avoided, and it
+  runs on the arena floor (it does not climb platforms). Its counterplay is its time limit and the dodgeable lunge.
+* Temporal Bubble slows enemy projectiles on the host only; on a guest those projectiles look full speed and may
+  vanish slightly early.
+* Fighter cards in the online lobby use 8-9 px text to fit twelve; check legibility on a phone.
 * Animations: all fighters share one procedural skeleton. They differ in idle, victory, weapons, overlays and effects,
   but there are no hand-drawn per-class sprite sheets; defeat/hit/land animations are shared. Final art is still needed.
 * No directional (up/down) attacks; no separate landing animation.

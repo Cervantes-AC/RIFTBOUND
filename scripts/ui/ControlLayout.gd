@@ -5,9 +5,9 @@ extends RefCounted
 ## Presets: "standard" and "compact". Dragging a button in the control editor switches to "custom",
 ## which stores one offset per button in SaveManager.ctl_custom (saved in user://save.cfg).
 
-const NAMES := ["attack", "special", "signature", "mobility", "ultimate", "jump"]
-const ACTIONS := {"attack": "attack", "special": "skill1", "signature": "skill2", "mobility": "dodge", "ultimate": "skill3", "jump": "jump"}
-const LABELS := {"attack": "ATTACK", "special": "SPECIAL", "signature": "SIGNATURE", "mobility": "MOBILITY", "ultimate": "ULTIMATE", "jump": "JUMP"}
+const NAMES := ["attack", "special", "signature", "mobility", "ultimate"]   # jump = push the stick up
+const ACTIONS := {"attack": "attack", "special": "skill1", "signature": "skill2", "mobility": "dodge", "ultimate": "skill3"}
+const LABELS := {"attack": "ATTACK", "special": "SPECIAL", "signature": "SIGNATURE", "mobility": "MOBILITY", "ultimate": "ULTIMATE"}
 const PRESETS := {
 	"standard": {
 		"attack": {"anchor": "br", "o": Vector2(-120, -108), "r": 62.0},
@@ -15,7 +15,6 @@ const PRESETS := {
 		"signature": {"anchor": "br", "o": Vector2(-232, -222), "r": 46.0},
 		"special": {"anchor": "br", "o": Vector2(-266, -96), "r": 46.0},
 		"ultimate": {"anchor": "br", "o": Vector2(-392, -190), "r": 44.0},
-		"jump": {"anchor": "bl", "o": Vector2(330, -84), "r": 50.0},
 	},
 	"compact": {
 		"attack": {"anchor": "br", "o": Vector2(-100, -96), "r": 54.0},
@@ -23,7 +22,6 @@ const PRESETS := {
 		"signature": {"anchor": "br", "o": Vector2(-190, -186), "r": 40.0},
 		"special": {"anchor": "br", "o": Vector2(-214, -84), "r": 40.0},
 		"ultimate": {"anchor": "br", "o": Vector2(-304, -150), "r": 38.0},
-		"jump": {"anchor": "bl", "o": Vector2(270, -74), "r": 44.0},
 	},
 }
 const MIN_SCALE := 0.7

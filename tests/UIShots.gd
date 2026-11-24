@@ -13,6 +13,8 @@ func _ready() -> void:
 		add_child(inst)
 		if OS.get_environment("PICK") != "" and "_picker" in inst:
 			inst._picker.select(OS.get_environment("PICK"))
+		if OS.get_environment("HOST") != "" and n == "OnlineLobby":
+			inst._on_host_pressed()
 		await get_tree().create_timer(1.6).timeout
 		DirAccess.make_dir_recursive_absolute("user://shots")
 		get_viewport().get_texture().get_image().save_png("user://shots/ui2_%s.png" % n)

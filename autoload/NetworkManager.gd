@@ -35,6 +35,7 @@ var arena := "forest"
 var guest_ready := false
 var _join_token := 0
 var _peer: ENetMultiplayerPeer
+var _discovery := LanDiscovery.new()   # answers "who is hosting?" while we wait for a guest
 
 
 func _ready() -> void:
@@ -43,6 +44,11 @@ func _ready() -> void:
 	multiplayer.connected_to_server.connect(_on_connected_to_server)
 	multiplayer.connection_failed.connect(_on_connection_failed)
 	multiplayer.server_disconnected.connect(_on_server_disconnected)
+
+
+func _process(_delta: float) -> void:
+	if role == "host":
+		_discovery.poll_host(not guest_connected())
 
 
 func is_online() -> bool:
@@ -100,6 +106,8 @@ func host_game() -> bool:
 	guest_is_loaded = false
 	arena = GameState.online_arena
 	host_class = GameState.selected_class
+	if not _discovery.start_host():
+		push_warning("LAN discovery port %d is busy; the guest must type the IP." % LanDiscovery.PORT)
 	_set_status("Hosting on %s:%d - waiting for a player..." % [get_local_ip() if get_local_ip() != "" else "no Wi-Fi address", PORT])
 	return true
 
@@ -143,6 +151,7 @@ func _start_join_timeout(token: int, ip: String) -> void:
 
 func leave() -> void:
 	_join_token += 1
+	_discovery.stop()
 	if _peer != null:
 		_peer.close()
 	_peer = null

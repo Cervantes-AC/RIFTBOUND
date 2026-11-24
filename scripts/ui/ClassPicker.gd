@@ -13,6 +13,12 @@ const SKILL_TEXT := {
 	"ranger_basic": "Quick arrow (aimed +50%)", "piercing_shot": "Arrow pierces enemies", "hunters_mark": "Mark: +25% damage taken", "shadow_dash": "Evasive dash backwards", "arrow_storm": "ULT: storm of arrows",
 	"gunslinger_basic": "Pistol shot, 1 ammo", "quick_burst": "4 rapid shots, 3 ammo", "explosive_round": "Explosive shell, 2 ammo", "tactical_roll": "Roll and reload 2", "dead_eye": "ULT: fan + infinite ammo",
 	"arcanist_basic": "Orb of attuned element", "arcane_bolt": "Homing elemental bolt", "attune": "Cycle Fire/Frost/Storm", "arcane_slip": "Slip backwards", "cataclysm": "ULT: colossal meteor",
+	"rift_cut": "Quick cut, backstab +30%", "dimensional_slash": "Piercing crescent", "rift_step": "Teleport behind + stab", "phase_dash": "Invulnerable dash", "rift_collapse": "ULT: pull in and crush",
+	"guard_strike": "Hammer strike", "sanctuary_pulse": "Shove enemies away", "guardian_ward": "Zone: -35% damage", "shield_step": "Short safe step", "aegis_dome": "ULT: dome -60% damage",
+	"spark": "Small bolt, +Charge", "lightning_bolt": "Very fast bolt", "discharge": "Spend Charge: chain zap", "static_dash": "Dash, +20 Charge", "tempest": "ULT: storm strikes",
+	"reaper_basic": "Wide sweep, +Souls", "soul_rend": "Heavy reaping arc", "soul_siphon": "Spend Souls to heal", "wraith_step": "Ghostly dash", "deaths_harvest": "ULT: reap and heal",
+	"chrono_bolt": "Time bolt", "time_snare": "Slow the target 3s", "temporal_bubble": "Slow zone + bullets", "time_skip": "Short blink", "hourglass": "ULT: slow all, haste",
+	"claw_slash": "Axe-claw slash", "sic_em": "Wolf lunges (needs wolf)", "call_of_pack": "Summon wolf 10s", "pounce": "Leap attack", "alpha_howl": "ULT: wolf frenzy",
 	"shadeweaver_basic": "Scythe sweep (+Shadow)", "binding_chains": "Roots target 1.4s", "shadow_echo": "Teleport, swap back", "rift_blink": "Blink + burst", "eclipse": "ULT: roots all nearby",
 }
 const SLOT_NAMES := ["BASIC", "SPECIAL", "SIGNATURE", "ULTIMATE", "MOBILITY"]
@@ -34,7 +40,7 @@ func ids() -> Array:
 func _ready() -> void:
 	add_theme_constant_override("separation", 14)
 	var grid := GridContainer.new()
-	grid.columns = 3 if compact else 4
+	grid.columns = 4
 	grid.add_theme_constant_override("h_separation", 10)
 	grid.add_theme_constant_override("v_separation", 10)
 	grid.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
@@ -58,6 +64,7 @@ func _ready() -> void:
 	else:
 		_stage = Stage.new()
 		_stage.custom_minimum_size = Vector2(170, 0)
+		_stage.clip_contents = true   # long weapons must not cover the ability text
 		root.add_child(_stage)
 		root.add_child(_detail_box)
 	_build_detail_frame()
@@ -66,7 +73,7 @@ func _ready() -> void:
 
 func _make_card(id: String) -> Button:
 	var b := Button.new()
-	var sz := 140.0 if compact else 124.0
+	var sz := 96.0 if compact else 124.0
 	b.custom_minimum_size = Vector2(sz, sz)
 	b.focus_mode = Control.FOCUS_NONE
 	b.text = ""
@@ -175,7 +182,9 @@ func select(id: String, emit: bool = true) -> void:
 	_detail_box.add_child(_stat_row("SPEED", d.move_speed / 320.0, "%d" % int(d.move_speed), Color("#4fb0e8")))
 	_detail_box.add_child(_stat_row("JUMPS", d.jump_velocity / 700.0, "x%d" % d.max_jumps, Color("#4fd36b")))
 	if not compact:
-		_detail_box.add_child(PixelUI.label("MECHANIC %s   PASSIVE %s" % [d.mech_name, d.passive_name.to_upper()], 12, Color("#ffd24a")))
+		var tags := PixelUI.wrap_label("MECHANIC %s   PASSIVE %s" % [d.mech_name, d.passive_name.to_upper()], 14, Color("#ffd24a"))
+		tags.custom_minimum_size = Vector2(340, 0)
+		_detail_box.add_child(tags)
 		var order := [[d.basic, 0], [d.skills[0], 1], [d.skills[1], 2], [d.mobility, 4], [d.skills[2], 3]]
 		for o in order:
 			_detail_box.add_child(_skill_row(o[0], o[1]))
@@ -291,15 +300,17 @@ class ClassCardArt extends Control:
 
 	func _draw() -> void:
 		var d := Library.get_class_data(class_id)
-		var s := 60.0 if compact else 52.0
+		var s := 40.0 if compact else 52.0
 		Portrait.draw(self, d, Rect2(size.x * 0.5 - s * 0.5, 10.0, s, s), d.planned)
 		var font := PixelUI.FONT
-		var fs := 14 if compact else 12
+		var fs := 9 if compact else 12
 		if not compact and d.display_name.length() > 9:
 			fs = 10
+		if compact and d.display_name.length() > 10:
+			fs = 8
 		draw_string(font, Vector2(0, size.y - 30 if compact else size.y - 26), d.display_name.to_upper(), HORIZONTAL_ALIGNMENT_CENTER, size.x, fs, Color.WHITE if not d.planned else Color(1, 1, 1, 0.55))
 		var sub := "PLANNED" if d.planned else d.role.split(" / ")[0].to_upper()
-		draw_string(font, Vector2(0, size.y - 12 if compact else size.y - 10), sub, HORIZONTAL_ALIGNMENT_CENTER, size.x, 11 if not compact else 12, PixelUI.C_RED if d.planned else d.color.lightened(0.4))
+		draw_string(font, Vector2(0, size.y - 12 if compact else size.y - 10), sub, HORIZONTAL_ALIGNMENT_CENTER, size.x, 11 if not compact else 8, PixelUI.C_RED if d.planned else d.color.lightened(0.4))
 		draw_rect(Rect2(14, size.y - 8, size.x - 28, 3), d.color if not d.planned else Color("#3a3050"))
 		if d.planned:
 			var lc := Vector2(size.x - 16.0, 16.0)   # small padlock

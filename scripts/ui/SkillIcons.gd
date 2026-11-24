@@ -75,6 +75,26 @@ static func draw(ci: CanvasItem, icon: String, c: Vector2, r: float, col: Color)
 			ci.draw_circle(c, k * 0.8, dark)
 			ci.draw_arc(c, k * 1.0, 0.0, TAU, 20, col, r * 0.18)
 			ci.draw_arc(c, k * 1.3, 0.6, 2.4, 10, col, r * 0.1)
+		"gate":
+			ci.draw_arc(c + Vector2(-k * 0.5, 0), k * 0.6, 1.2, 5.1, 12, col, r * 0.16)
+			ci.draw_arc(c + Vector2(k * 0.5, 0), k * 0.6, -1.9, 1.9, 12, col, r * 0.16)
+			ci.draw_line(c + Vector2(-k * 0.3, 0), c + Vector2(k * 0.3, 0), Color.WHITE, r * 0.12)
+		"dome":
+			ci.draw_arc(c + Vector2(0, k * 0.5), k * 1.1, PI, TAU, 18, col, r * 0.2)
+			ci.draw_line(c + Vector2(-k * 1.2, k * 0.55), c + Vector2(k * 1.2, k * 0.55), col, r * 0.16)
+			ci.draw_circle(c + Vector2(0, k * 0.15), k * 0.25, col)
+		"soul":
+			ci.draw_circle(c + Vector2(0, k * 0.3), k * 0.65, col)
+			ci.draw_colored_polygon(PackedVector2Array([c + Vector2(-k * 0.55, 0), c + Vector2(k * 0.2, -k * 1.2), c + Vector2(k * 0.55, 0)]), col)
+			ci.draw_circle(c + Vector2(0, k * 0.3), k * 0.25, dark)
+		"paw":
+			ci.draw_circle(c + Vector2(0, k * 0.4), k * 0.55, col)
+			for t in [Vector2(-0.8, -0.25), Vector2(-0.3, -0.75), Vector2(0.3, -0.75), Vector2(0.8, -0.25)]:
+				ci.draw_circle(c + t * k, k * 0.26, col)
+		"clock":
+			ci.draw_arc(c, k, 0.0, TAU, 20, col, r * 0.16)
+			ci.draw_line(c, c + Vector2(0, -k * 0.7), col, r * 0.14)
+			ci.draw_line(c, c + Vector2(k * 0.5, k * 0.2), col, r * 0.14)
 		"jump":
 			ci.draw_polyline(PackedVector2Array([c + Vector2(-k, k * 0.2), c + Vector2(0, -k * 0.8), c + Vector2(k, k * 0.2)]), col, r * 0.22)
 			ci.draw_line(c + Vector2(0, -k * 0.6), c + Vector2(0, k * 0.9), col, r * 0.2)

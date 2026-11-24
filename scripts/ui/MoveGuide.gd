@@ -10,6 +10,12 @@ const COMBOS := {
 	"gunslinger": "Quick Burst > Pistol x2 > Tactical Roll (reload 2) > Explosive Round. Dead Eye ignores ammo.",
 	"arcanist": "Frost Orb (slow) > Attune to Fire > Fire Bolt = SHATTER. Storm hits chain and stun slowed foes.",
 	"shadeweaver": "Binding Chains > Shadow Echo behind them > Void Lash. Swap back to escape. Eclipse for groups.",
+	"riftblade": "Dimensional Slash to poke > Rift Step behind them > Rift Cut x2 (backstab) > Phase Dash out.",
+	"warden": "Guardian Ward under your feet > Guard Strike > Sanctuary Pulse to peel. Aegis Dome when the team is focused.",
+	"stormcaller": "Spark x3 > Lightning Bolt > Discharge at 60+ Charge. Static Dash to recharge and escape.",
+	"reaper": "Scythe Sweep (hit) > cancel into Soul Rend. Siphon Souls when low, keep them for later when healthy.",
+	"chronomancer": "Time Snare > Chrono Bolts > Temporal Bubble on their feet. Time Skip out. Hourglass, then go all in.",
+	"beastbound": "Call of the Pack > Pounce > Claw Slash > Sic 'Em. Alpha Howl once the wolf is on them.",
 }
 const KEYS := {"attack": "J", "special": "U", "signature": "I", "mobility": "L", "ultimate": "O"}
 
@@ -89,7 +95,7 @@ func _ready() -> void:
 	for r in rows:
 		right.add_child(_move_row(r[0], r[1]))
 	_block(right, "COMBOS", String(COMBOS.get(class_id, "")), PixelUI.C_TEXT)
-	_block(right, "EVERYONE", "Mobility just before a hit = DODGE! and your next hit is a COUNTER (+25%). Ultimates charge as you deal and take damage. Keyboard: A/D move, SPACE jump, J attack, U special, I signature, L mobility, O ultimate.", PixelUI.C_DIM)
+	_block(right, "EVERYONE", "Mobility just before a hit = DODGE! and your next hit is a COUNTER (+25%). Ultimates charge as you deal and take damage. Touch: push the stick UP to jump, DOWN to drop through platforms. Keyboard: A/D move, W or SPACE jump, S drop, J attack, U special, I signature, L mobility, O ultimate.", PixelUI.C_DIM)
 
 
 func _block(parent: Control, title: String, text: String, color: Color) -> void:

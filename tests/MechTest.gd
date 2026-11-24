@@ -55,6 +55,12 @@ func _ready() -> void:
 	await _test_gunslinger()
 	await _test_arcanist()
 	await _test_shadeweaver()
+	await _test_riftblade()
+	await _test_warden()
+	await _test_stormcaller()
+	await _test_reaper()
+	await _test_chronomancer()
+	await _test_beastbound()
 	await _test_ultimate_meter()
 	await _test_input_rules()
 	await _test_sync()
@@ -115,21 +121,16 @@ func _hit(target: Fighter, attacker: Fighter, dmg: float, extra := {}) -> float:
 func _test_roster() -> void:
 	print("--- roster")
 	check("12 roster entries", Library.roster_ids().size() == 12)
-	check("only 6 are playable", Library.class_ids().size() == 6)
+	check("all 12 are playable, none left planned", Library.class_ids().size() == 12 and Library.PLANNED_ORDER.is_empty())
 	var all_ok := true
 	for id in Library.class_ids():
 		var d := Library.get_class_data(id)
 		all_ok = all_ok and not d.planned and d.basic != null and d.mobility != null and d.skills.size() == 3 and d.skills[2].is_ultimate and d.mech_id != "" and d.passive_name != "" and d.lore != "" and d.difficulty >= 1
 	check("playable classes have basic/special/signature/ultimate/mobility, passive, lore, difficulty", all_ok)
-	var planned_ok := true
-	for id in Library.PLANNED_ORDER:
-		var d2 := Library.get_class_data(id)
-		planned_ok = planned_ok and d2.planned and d2.basic == null
-	check("planned classes are flagged and have no abilities (never playable)", planned_ok)
 	var mechs := {}
 	for id in Library.class_ids():
 		mechs[Library.get_class_data(id).mech_id] = true
-	check("all six playable classes have a different signature mechanic", mechs.size() == 6)
+	check("all 12 classes have a different signature mechanic", mechs.size() == 12)
 
 
 func _test_vanguard() -> void:
@@ -346,6 +347,151 @@ func _test_shadeweaver() -> void:
 	await _free(m)
 
 
+## Resets cooldowns / state, then starts the ability in `slot` and waits.
+func _use(a: Fighter, slot: int, wait: int) -> bool:
+	a.state = Fighter.State.IDLE
+	a.skills.reset()
+	var ok := a.try_skill(slot)
+	await frames(wait)
+	return ok
+
+
+func _test_riftblade() -> void:
+	print("--- riftblade: phase / backstab / rift step")
+	var m := await _match("riftblade", "vanguard")
+	var a := m.fighters[0]
+	var b := m.fighters[1]
+	a.global_position.x = 300.0
+	b.global_position.x = 600.0
+	b.facing = -1
+	var front := _hit(b, a, 10.0)
+	b.facing = 1
+	var back := _hit(b, a, 10.0)
+	check("hits from behind deal +30%", absf(back / front - 1.3) < 0.02, "%f vs %f" % [back, front])
+	a.mech.res = 10.0
+	check("Rift Step needs 40 Phase", not a.can_use_slot(2))
+	a.mech.res = 100.0
+	b.facing = -1
+	var hp := b.health.current
+	await _use(a, 2, 40)
+	check("Rift Step exits behind the target and stabs", a.global_position.x > 600.0 and b.health.current < hp, "x=%f" % a.global_position.x)
+	await _free(m)
+
+
+func _test_warden() -> void:
+	print("--- warden: wards")
+	var m := await _match("warden", "duelist")
+	var a := m.fighters[0]
+	var b := m.fighters[1]
+	a.health.setup(1000.0)
+	var plain := _hit(a, b, 20.0)
+	a.mech.res = 100.0
+	await _use(a, 2, 30)
+	var warded := _hit(a, b, 20.0)
+	check("inside Guardian Ward damage drops 35%", absf(warded / plain - 0.65) < 0.02, "%f vs %f" % [warded, plain])
+	check("the ward does not protect enemies", m.zone_reduction(b) == 0.0)
+	check("ward state is synced for guests", (a.mech as WardenMech).vis_active() and (a.mech as WardenMech).vis_radius() == 170.0)
+	a.global_position.x += 400.0
+	check("leaving the ward removes the protection", m.zone_reduction(a) == 0.0)
+	a.ult = 100.0
+	await _use(a, 3, 40)
+	check("Aegis Dome is bigger and gives 60%", absf(m.zone_reduction(a) - 0.6) < 0.001 and (a.mech as WardenMech).vis_radius() == 260.0)
+	await _free(m)
+
+
+func _test_stormcaller() -> void:
+	print("--- stormcaller: charge / discharge")
+	var m := await _match("stormcaller", "vanguard")
+	var a := m.fighters[0]
+	var b := m.fighters[1]
+	a.mech.res = 10.0
+	check("Discharge needs 30 Charge", not a.can_use_slot(2))
+	a.mech.res = 30.0
+	var hp := b.health.current
+	await _use(a, 2, 40)
+	var low := hp - b.health.current
+	a.mech.res = 100.0
+	b.state = Fighter.State.IDLE
+	b.global_position = Vector2(a.global_position.x + 200.0, m.arena.floor_y)
+	hp = b.health.current
+	await _use(a, 2, 40)
+	var high := hp - b.health.current
+	check("Discharge damage grows with Charge spent", low > 0.0 and high > low + 10.0, "%f vs %f" % [high, low])
+	var before := a.mech.res
+	_hit(b, a, 5.0, {"source": "lightning_bolt"})
+	check("Lightning Bolt hits add 15 Charge", a.mech.res >= before + 14.9)
+	await _free(m)
+
+
+func _test_reaper() -> void:
+	print("--- reaper: souls / capped healing")
+	var m := await _match("reaper", "vanguard")
+	var a := m.fighters[0]
+	var b := m.fighters[1]
+	_hit(b, a, 10.0, {"source": "reaper_basic"})
+	check("hits gather Souls", a.mech.res >= 8.0)
+	var r := a.mech as ReaperMech
+	a.health.current = 20.0
+	r._used = 0.0
+	var healed := 0.0
+	for i in 10:
+		healed += r.heal(20.0)
+	check("healing is capped by the shared budget (25)", absf(healed - ReaperMech.BUDGET) < 0.01, str(healed))
+	r._used = 0.0
+	a.mech.res = 100.0
+	a.health.current = 20.0
+	await _use(a, 2, 40)
+	check("Soul Siphon spends all Souls and heals at most 24", a.mech.res < 10.0 and a.health.current > 20.0 and a.health.current <= 44.5, "hp %f res %f" % [a.health.current, a.mech.res])
+	await _free(m)
+
+
+func _test_chronomancer() -> void:
+	print("--- chronomancer: time energy / bubble")
+	var m := await _match("chronomancer", "ranger")
+	var a := m.fighters[0]
+	var b := m.fighters[1]
+	a.mech.res = 5.0
+	check("time abilities need energy", not a.can_use_slot(1) and not a.can_use_slot(2) and not a.can_use_slot(4))
+	a.skills.start_cooldown(1, 4.0)
+	await frames(60)
+	check("cooldowns tick 15% faster", absf(a.skills.cooldown_left[1] - 2.85) < 0.08, str(a.skills.cooldown_left[1]))
+	a.mech.res = 100.0
+	a.global_position.x = 300.0
+	a.facing = 1
+	b.global_position = Vector2(560.0, m.arena.floor_y)
+	await _use(a, 2, 30)
+	check("Temporal Bubble slows enemies inside", a.mech.aux > 0.0 and b.has_status("slow"))
+	await frames(300)
+	check("the bubble expires", a.mech.aux <= 0.0)
+	await _free(m)
+
+
+func _test_beastbound() -> void:
+	print("--- beastbound: companion")
+	var m := await _match("beastbound", "vanguard")
+	var a := m.fighters[0]
+	var b := m.fighters[1]
+	check("Sic 'Em is refused without a wolf", not a.can_use_slot(1))
+	a.global_position.x = 300.0
+	b.global_position.x = 600.0
+	var hp := b.health.current
+	await _use(a, 2, 150)
+	check("the wolf is summoned", (a.mech as BeastboundMech).active())
+	check("the wolf runs in and bites on its own", b.health.current < hp)
+	check("Pack Bond boosts speed and damage while it is out", a.mech.speed_bonus() > 1.0 and a.mech.outgoing_bonus() > 1.0)
+	hp = b.health.current
+	b.state = Fighter.State.IDLE
+	await _use(a, 1, 30)
+	check("Sic 'Em lunge deals damage", hp - b.health.current >= 14.0, str(hp - b.health.current))
+	a.mech.res = 0.05
+	await frames(10)
+	check("the wolf leaves when its time runs out", not (a.mech as BeastboundMech).active() and a.mech.extra < -9000.0)
+	a.ult = 100.0
+	await _use(a, 3, 40)
+	check("Alpha Howl calls the wolf and starts a frenzy", (a.mech as BeastboundMech).active() and a.mech.aux > 0.0)
+	await _free(m)
+
+
 func _test_ultimate_meter() -> void:
 	print("--- ultimate meter")
 	var m := await _match("vanguard", "duelist")
@@ -473,7 +619,7 @@ func _test_settings() -> void:
 	SaveManager.ctl_scale = 1.2
 	SaveManager.ctl_opacity = 0.55
 	SaveManager.ctl_sens = 1.3
-	SaveManager.ctl_custom = {"attack": Vector2(-200, -150), "jump": Vector2(400, -90)}
+	SaveManager.ctl_custom = {"attack": Vector2(-200, -150), "special": Vector2(-300, -90)}
 	SaveManager.save()
 	SaveManager.reset_controls()
 	check("controls reset to defaults", SaveManager.ctl_preset == "standard" and SaveManager.ctl_scale == 1.0)

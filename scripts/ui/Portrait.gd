@@ -48,6 +48,32 @@ static func draw(ci: CanvasItem, d: ClassData, r: Rect2, dim := false) -> void:
 			ci.draw_rect(Rect2(cx - 10.0 * k, by - 62.0 * k, 20.0 * k, 17.0 * k), d.color)
 			ci.draw_rect(Rect2(cx - 5.0 * k, by - 72.0 * k, 10.0 * k, 12.0 * k), d.color.lightened(0.1))
 			ci.draw_rect(Rect2(cx - 10.0 * k, by - 50.0 * k, 20.0 * k, 3.0 * k), d.accent)
+		"riftblade":
+			ci.draw_rect(Rect2(cx - 13.0 * k, by - 46.0 * k, 26.0 * k, 9.0 * k), d.hair)
+			ci.draw_rect(Rect2(cx - 12.0 * k, by - 23.0 * k, 24.0 * k, 11.0 * k), d.color.darkened(0.35))
+			ci.draw_rect(Rect2(cx - 1.0 * k, by - 31.0 * k, 14.0 * k, 5.0 * k), d.accent)
+		"warden":
+			ci.draw_rect(Rect2(cx - 14.0 * k, by - 50.0 * k, 28.0 * k, 16.0 * k), d.color)
+			ci.draw_rect(Rect2(cx - 19.0 * k, by - 56.0 * k, 9.0 * k, 12.0 * k), d.accent)
+			ci.draw_rect(Rect2(cx + 10.0 * k, by - 56.0 * k, 9.0 * k, 12.0 * k), d.accent)
+		"stormcaller":
+			ci.draw_rect(Rect2(cx - 12.0 * k, by - 44.0 * k, 24.0 * k, 9.0 * k), d.hair)
+			for spike in 4:
+				ci.draw_rect(Rect2(cx + (-12.0 + spike * 7.0) * k, by - (56.0 - (spike % 2) * 5.0) * k, 4.0 * k, 14.0 * k), d.hair)
+			ci.draw_rect(Rect2(cx - 12.0 * k, by - 37.0 * k, 24.0 * k, 3.0 * k), d.color)
+		"reaper":
+			ci.draw_rect(Rect2(cx - 15.0 * k, by - 50.0 * k, 30.0 * k, 32.0 * k), d.color.darkened(0.35))
+			ci.draw_rect(Rect2(cx - 6.0 * k, by - 40.0 * k, 17.0 * k, 24.0 * k), Color("#e8e0d0"))
+			ci.draw_rect(Rect2(cx + 1.0 * k, by - 33.0 * k, 6.0 * k, 6.0 * k), d.color)
+		"chronomancer":
+			ci.draw_rect(Rect2(cx - 13.0 * k, by - 45.0 * k, 26.0 * k, 8.0 * k), d.hair)
+			ci.draw_rect(Rect2(cx - 9.0 * k, by - 57.0 * k, 18.0 * k, 13.0 * k), d.color)
+			ci.draw_arc(Vector2(cx + 5.0 * k, by - 27.0 * k), 6.0 * k, 0.0, TAU, 12, d.accent, 2.0 * k)
+		"beastbound":
+			ci.draw_rect(Rect2(cx - 13.0 * k, by - 46.0 * k, 26.0 * k, 11.0 * k), d.hair)
+			ci.draw_colored_polygon(PackedVector2Array([Vector2(cx - 13.0 * k, by - 45.0 * k), Vector2(cx - 9.0 * k, by - 58.0 * k), Vector2(cx - 2.0 * k, by - 45.0 * k)]), Color("#5a4630"))
+			ci.draw_colored_polygon(PackedVector2Array([Vector2(cx + 2.0 * k, by - 45.0 * k), Vector2(cx + 9.0 * k, by - 58.0 * k), Vector2(cx + 13.0 * k, by - 45.0 * k)]), Color("#5a4630"))
+			ci.draw_rect(Rect2(cx - 2.0 * k, by - 21.0 * k, 14.0 * k, 3.0 * k), d.color.darkened(0.3))
 		"shadeweaver":
 			ci.draw_rect(Rect2(cx - 15.0 * k, by - 50.0 * k, 30.0 * k, 28.0 * k), OUT)
 			ci.draw_rect(Rect2(cx - 13.0 * k, by - 48.0 * k, 26.0 * k, 26.0 * k), d.color.darkened(0.2))

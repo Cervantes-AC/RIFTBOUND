@@ -110,7 +110,7 @@ func _test_progression() -> void:
 # ---------------------------------------------------------------- data
 func _test_data() -> void:
 	print("--- data definitions")
-	check("six classes defined", Library.class_ids().size() == 6)
+	check("twelve classes defined", Library.class_ids().size() == 12)
 	var total_skills := 0
 	var archetypes := {}
 	for id in Library.class_ids():
@@ -120,7 +120,7 @@ func _test_data() -> void:
 		check("%s has basic + 3 skills and stats" % id, c.skills.size() == 3 and c.basic != null and c.max_health > 0 and c.move_speed > 0 and c.jump_velocity > 0)
 		for sk in c.skills:
 			check("%s/%s has cooldown>0" % [id, sk.id], sk.cooldown > 0.0)
-	check("18 special skills total", total_skills == 18)
+	check("36 special skills total", total_skills == 36)
 	check("three archetypes", archetypes.size() == 3)
 	check("five levels defined", Library.level_count() == 5)
 	var prev_hp := 0.0
@@ -173,8 +173,8 @@ func _test_combat() -> void:
 	check("attack starts", a.try_skill(0))
 	await frames(40)
 	var dmg := before - b.health.current
-	check("basic attack deals exactly its damage once", absf(dmg - 9.0) < 0.01, "dealt %f" % dmg)
-	check("one swing hits a target only once (hitbox alive many frames)", absf(dmg - 9.0) < 0.01)
+	check("basic attack deals exactly its damage once", absf(dmg - a.data.basic.damage) < 0.01, "dealt %f" % dmg)
+	check("one swing hits a target only once (hitbox alive many frames)", absf(dmg - a.data.basic.damage) < 0.01)
 	check("hit applies knockback / hurt state", b.state == Fighter.State.HURT or b.velocity.x != 0.0 or true)
 	await frames(60)
 	# cooldown behaviour
@@ -412,15 +412,18 @@ func _test_touch_input() -> void:
 	check("joystick left switches to move_left", Input.is_action_pressed("move_left") and not Input.is_action_pressed("move_right"))
 	t._update_stick(Vector2(160 + 4, t.size.y - 160))
 	check("joystick dead-zone ignores tiny movement", not Input.is_action_pressed("move_left") and not Input.is_action_pressed("move_right"))
-	t._on_press(7, t.button_center("jump"))
-	check("third finger presses Jump too", Input.is_action_pressed("jump"))
+	t._update_stick(Vector2(160, t.size.y - 160 - 70))
+	check("stick up presses Jump (no jump button)", Input.is_action_pressed("jump"))
+	t._update_stick(Vector2(160, t.size.y - 160 - 10))
+	check("stick back to centre releases Jump", not Input.is_action_pressed("jump"))
+	t._update_stick(Vector2(160 + 40, t.size.y - 160 - 70))
+	check("stick up-right jumps and moves at once", Input.is_action_pressed("jump") and Input.is_action_pressed("move_right"))
 	t._on_release(5)
 	check("releasing attack finger releases only attack", not Input.is_action_pressed("attack") and Input.is_action_pressed("jump"))
-	t._on_release(7)
 	t._on_release(6)
 	check("all fingers up releases everything", not Input.is_action_pressed("jump") and not Input.is_action_pressed("move_left"))
 	t._on_press(8, Vector2(1000, 20))   # tap in empty top-right space does nothing
-	check("tap on empty space presses no action", not Input.is_action_pressed("attack") and not Input.is_action_pressed("jump"))
+	check("tap on empty space presses no action", not Input.is_action_pressed("attack"))
 	t._on_release(8)
 	layer.queue_free()
 

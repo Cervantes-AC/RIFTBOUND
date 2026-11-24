@@ -22,8 +22,16 @@ static func style_for(sk: SkillData) -> String:
 			return "guard"
 		"flurry", "echo":
 			return "dash"
-		"attune":
+		"attune", "discharge":
 			return "cast"
+		"riftstep":
+			return "dash"
+		"ward":
+			return "guard"
+		"collapse", "siphon", "bubble", "summon", "howl":
+			return "cast_up"
+		"command":
+			return "shoot"
 		"spin":
 			return "spin"
 		"shield":
@@ -77,6 +85,24 @@ func fire(sk: SkillData, f: Fighter, it: Intent) -> float:
 
 func _fire_kind(sk: SkillData, f: Fighter, it: Intent) -> float:
 	match sk.kind:
+		"riftstep":
+			return _fire_riftstep(sk, f)
+		"collapse":
+			return _fire_collapse(sk, f)
+		"ward":
+			return _fire_ward(sk, f)
+		"discharge":
+			return _fire_discharge(sk, f)
+		"siphon":
+			return _fire_siphon(sk, f)
+		"bubble":
+			return _fire_bubble(sk, f)
+		"command":
+			return _fire_command(sk, f)
+		"summon":
+			return _fire_summon(sk, f)
+		"howl":
+			return _fire_howl(sk, f)
 		"retaliate":
 			return _fire_retaliate(sk, f)
 		"bastion":
@@ -299,6 +325,10 @@ func _fire_nova(sk: SkillData, f: Fighter) -> float:
 	AudioManager.play_sfx("nova")
 	_fx("ring", f.global_position + Vector2(0, _chest()), {"color": sk.color, "radius": r})
 	_fx("burst", f.global_position + Vector2(0, _chest()), {"color": sk.color, "count": 18})
+	if float(sk.p("self_haste", 0.0)) > 0.0:
+		f.set_status("haste", float(sk.p("self_haste_dur", 3.0)), float(sk.p("self_haste", 1.3)))
+	if float(sk.p("self_cdr", 0.0)) > 0.0:
+		f.skills.reduce_all(float(sk.p("self_cdr", 0.0)), f.action_slot)
 	if f.world:
 		f.world.shake(6.0)
 	return 0.12
@@ -325,11 +355,11 @@ func _fire_blink(sk: SkillData, f: Fighter, it: Intent) -> float:
 	if it != null and absf(it.move) > 0.3:
 		dir = 1 if it.move > 0.0 else -1
 	var origin := f.global_position
-	var burst := make_hit(sk)
-	var hb := Hitbox.new()
-	hb.setup(f, burst, Vector2(sk.p("burst_radius", 90), sk.p("burst_radius", 90)), 0.12, 0.0, true)
-	f.get_parent().add_child(hb)
-	hb.global_position = origin + Vector2(0, _chest())
+	if sk.damage > 0.0:   # a harmless blink (Time Skip) leaves no hitbox
+		var hb := Hitbox.new()
+		hb.setup(f, make_hit(sk), Vector2(sk.p("burst_radius", 90), sk.p("burst_radius", 90)), 0.12, 0.0, true)
+		f.get_parent().add_child(hb)
+		hb.global_position = origin + Vector2(0, _chest())
 	var target_x := origin.x + dir * float(sk.p("dist", 280))
 	if f.world and f.world.arena:
 		var b: Rect2 = f.world.arena.bounds
@@ -367,6 +397,23 @@ func announce(sk: SkillData) -> void:
 				pos += Vector2(f.facing * 60.0, 0.0)
 			"flurry":
 				r = 60.0
+			"riftstep":   # mark where the rift will open
+				r = 55.0
+				var exit: Variant = _rift_exit(sk)
+				if exit != null:
+					pos = exit
+			"command":    # mark where the wolf will land
+				r = 60.0
+				var prey = f.world.nearest_enemy(f)
+				if prey != null:
+					pos = prey.global_position
+			"ward":
+				r = float(sk.p("radius", 170))
+			"bubble":
+				r = float(sk.p("radius", 160))
+				pos = Vector2(_forward_x(float(sk.p("reach", 260))), _floor_y())
+			"discharge":
+				r = 110.0
 			"projectile":
 				r = 50.0
 				pos += Vector2(f.facing * 40.0, 0.0)
@@ -463,3 +510,175 @@ func _fire_echo(sk: SkillData, f: Fighter) -> float:
 	_fx("ring", f.global_position + Vector2(0, _chest()), {"color": sk.color, "radius": 70.0})
 	_fx("burst", f.global_position + Vector2(0, _chest()), {"color": sk.color, "count": 12})
 	return 0.05
+
+
+# ------------------------------------------------------------------ abilities of the second six
+func _floor_y() -> float:
+	return fighter.world.arena.floor_y if (fighter.world and fighter.world.arena) else fighter.global_position.y
+
+
+func _clamp_x(x: float) -> float:
+	if fighter.world and fighter.world.arena:
+		var b: Rect2 = fighter.world.arena.bounds
+		return clampf(x, b.position.x, b.end.x)
+	return x
+
+
+func _forward_x(reach: float) -> float:
+	return _clamp_x(fighter.global_position.x + fighter.facing * reach)
+
+
+## Where Rift Step comes out: behind the nearest enemy in range (Vector2), or null when nobody is in range.
+func _rift_exit(sk: SkillData) -> Variant:
+	var target = fighter.world.nearest_enemy(fighter) if fighter.world else null
+	if target == null or absf(target.global_position.x - fighter.global_position.x) > float(sk.p("range", 520)):
+		return null
+	return Vector2(_clamp_x(target.global_position.x - target.facing * float(sk.p("behind", 70))), target.global_position.y)
+
+
+func _fire_riftstep(sk: SkillData, f: Fighter) -> float:
+	var origin := f.global_position
+	var target = f.world.nearest_enemy(f) if f.world else null
+	var exit: Variant = _rift_exit(sk)
+	if exit != null:
+		f.global_position = exit
+		f.facing = 1 if target.global_position.x >= f.global_position.x else -1
+	else:
+		f.global_position.x = _forward_x(220.0)
+	f.set_status("invuln", 0.15)
+	_spawn_box(Vector2(sk.p("w", 110), sk.p("h", 80)), Vector2(40, _chest()), 0.14, make_hit(sk))
+	AudioManager.play_sfx("magic", 1.5)
+	_fx("ring", origin + Vector2(0, _chest()), {"color": sk.color, "radius": 70.0})
+	_fx("ring", f.global_position + Vector2(0, _chest()), {"color": sk.color, "radius": 80.0})
+	_fx("slash", f.global_position + Vector2(f.facing * 40.0, _chest()), {"dir": f.facing, "color": sk.color, "w": 100.0})
+	return 0.14
+
+
+func _fire_collapse(sk: SkillData, f: Fighter) -> float:
+	var r := float(sk.p("radius", 330))
+	var pull := float(sk.p("pull", 650))
+	if f.world:
+		for e in f.world.fighters:
+			if e.team == f.team or e.is_dead() or e.has_status("invuln") or e.global_position.distance_to(f.global_position) > r:
+				continue
+			var dx: float = f.global_position.x - e.global_position.x
+			e.start_dash(signf(dx) * pull, clampf((absf(dx) - 50.0) / pull, 0.05, 0.4))
+		f.world.shake(10.0)
+	_spawn_box(Vector2(r * 0.4, r * 0.4), Vector2(0, _chest()), 0.42, make_hit(sk), 0.0, true)
+	AudioManager.play_sfx("nova", 0.8)
+	_fx("ring", f.global_position + Vector2(0, _chest()), {"color": sk.color, "radius": r})
+	_fx("burst", f.global_position + Vector2(0, _chest()), {"color": sk.color, "count": 24})
+	return 0.42
+
+
+func _fire_ward(sk: SkillData, f: Fighter) -> float:
+	var m := f.mech as WardenMech
+	if m == null:
+		return 0.05
+	var r := float(sk.p("radius", 170))
+	m.place_ward(f.global_position.x, float(sk.p("life", 6.0)), r, float(sk.p("reduction", 0.35)))
+	if sk.damage > 0.0:   # the dome also blasts nearby enemies away
+		_spawn_box(Vector2(r * 0.6, r * 0.6), Vector2(0, _chest()), 0.12, make_hit(sk), 0.0, true)
+		if f.world:
+			f.world.shake(9.0)
+	AudioManager.play_sfx("shield")
+	_fx("ring", f.global_position + Vector2(0, _chest()), {"color": sk.color, "radius": r})
+	return 0.1
+
+
+## Chain lightning: nearest enemy in range, then jumps to further enemies close to the last one struck.
+func _fire_discharge(sk: SkillData, f: Fighter) -> float:
+	var spent: float = f.mech.spent if f.mech is StormcallerMech else 0.0
+	var from := f.global_position + Vector2(0, _chest())
+	var reach := float(sk.p("range", 400))
+	var done: Array = []
+	if f.world:
+		for i in int(sk.p("targets", 3)):
+			var best: Fighter = null
+			var best_d := reach
+			for e in f.world.fighters:
+				if e.team == f.team or e.is_dead() or done.has(e):
+					continue
+				var d: float = e.center().distance_to(from)
+				if d <= best_d:
+					best = e
+					best_d = d
+			if best == null:
+				break
+			done.append(best)
+			var hit := make_hit(sk, float(sk.damage) + spent * float(sk.p("scale", 0.25)))
+			hit["from_x"] = from.x
+			_fx("bolt_line", from, {"to": best.center(), "color": sk.color})
+			from = best.center()
+			reach = float(sk.p("jump", 240))
+			if best.receive_hit(hit):
+				f.world.on_hit_landed(f, best, hit)
+		f.world.shake(7.0)
+	AudioManager.play_sfx("nova", 1.4)
+	_fx("ring", f.global_position + Vector2(0, _chest()), {"color": sk.color, "radius": 90.0})
+	return 0.1
+
+
+func _fire_siphon(sk: SkillData, f: Fighter) -> float:
+	var m := f.mech as ReaperMech
+	if m != null:
+		m.heal(minf(float(sk.p("heal", 8)) + m.spent * float(sk.p("scale", 0.2)), float(sk.p("cap", 24))))
+	AudioManager.play_sfx("magic", 0.8)
+	_fx("ring", f.global_position + Vector2(0, _chest()), {"color": sk.color, "radius": 80.0})
+	_fx("burst", f.global_position + Vector2(0, _chest()), {"color": sk.color, "count": 14})
+	return 0.1
+
+
+func _fire_bubble(sk: SkillData, f: Fighter) -> float:
+	var m := f.mech as ChronomancerMech
+	var x := _forward_x(float(sk.p("reach", 260)))
+	if m != null:
+		m.place_bubble(x, float(sk.p("life", 4.0)))
+	AudioManager.play_sfx("magic", 0.7)
+	_fx("ring", Vector2(x, _floor_y() - 60.0), {"color": sk.color, "radius": float(sk.p("radius", 160))})
+	return 0.05
+
+
+## Sic 'Em: the wolf leaps next to the nearest enemy and bites shortly after; moving away in time makes it miss.
+func _fire_command(sk: SkillData, f: Fighter) -> float:
+	var m := f.mech as BeastboundMech
+	var target = f.world.nearest_enemy(f) if f.world else null
+	if m == null or target == null or absf(target.global_position.x - f.global_position.x) > float(sk.p("range", 520)):
+		return 0.05
+	var side := 1.0 if target.global_position.x >= m.wolf_x else -1.0
+	var origin := Vector2(m.wolf_x, _floor_y())
+	m.wolf_x = target.global_position.x - side * 50.0
+	m.extra = m.wolf_x
+	_fx("trail", origin, {"dir": int(side), "color": sk.color})
+	_scheduled.append({"t": 0.18, "cb": _wolf_lunge.bind(sk, target)})
+	AudioManager.play_sfx("dash", 0.7)
+	return 0.24
+
+
+func _wolf_lunge(sk: SkillData, target) -> void:
+	var m := fighter.mech as BeastboundMech
+	if m == null or not is_instance_valid(target) or target.is_dead() or absf(target.global_position.x - m.wolf_x) > 140.0:
+		return
+	var hit := make_hit(sk)
+	hit["from_x"] = m.wolf_x
+	_fx("slash", target.center(), {"dir": 1 if target.global_position.x >= m.wolf_x else -1, "color": sk.color, "w": 90.0})
+	if target.receive_hit(hit) and fighter.world:
+		fighter.world.on_hit_landed(fighter, target, hit)
+
+
+func _fire_summon(sk: SkillData, f: Fighter) -> float:
+	var m := f.mech as BeastboundMech
+	if m != null:
+		m.summon(float(sk.p("life", 10.0)))
+	AudioManager.play_sfx("shield", 0.8)
+	_fx("ring", f.global_position + Vector2(0, _chest()), {"color": sk.color, "radius": 90.0})
+	return 0.05
+
+
+func _fire_howl(sk: SkillData, f: Fighter) -> float:
+	var m := f.mech as BeastboundMech
+	if m != null:
+		m.summon(m.max_res)
+		m.aux = float(sk.p("frenzy", 6.0))
+	f.set_status("haste", float(sk.p("frenzy", 6.0)), float(sk.p("haste", 1.3)))
+	return _fire_nova(sk, f)

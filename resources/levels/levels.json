@@ -4,7 +4,7 @@
    "lose_text": "You lose if your health reaches 0 or the timer ends.",
    "time": 100, "enemy_class": "vanguard", "enemy_hp_mult": 0.8, "enemy_name": "Forest Scout",
    "ai": {"reaction": 0.55, "aggression": 0.35, "speed": 0.85, "damage": 0.75, "dodge": 0.1, "skill": 0.25},
-   "hints": ["Drag the left stick to MOVE.", "Tap JUMP to leap onto platforms.", "Tap ATTACK when close to the enemy.", "Tap DODGE to roll through attacks.", "Use the three SKILL buttons when they are ready."]},
+   "hints": ["Drag the left stick to MOVE.", "Push the stick UP to JUMP onto platforms (down to drop).", "Tap ATTACK when close to the enemy.", "Tap MOBILITY to dash through attacks.", "SPECIAL and SIGNATURE need cooldowns; ULTIMATE needs a full meter."]},
   {"id": 2, "name": "Molten Cavern", "arena": "cavern",
    "objective": "Defeat the Ember Duelist. Avoid the lava pit!",
    "lose_text": "Lava burns! You lose if health reaches 0 or time ends.",

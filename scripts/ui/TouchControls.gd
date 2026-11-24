@@ -1,6 +1,6 @@
 class_name TouchControls
 extends Control
-## On-screen controls for Android landscape: floating joystick (left half), Jump (bottom-left) and a fan of
+## On-screen controls for Android landscape: floating joystick (left half; push it UP to jump, DOWN to drop through platforms) and a fan of
 ## Attack / Special / Signature / Mobility / Ultimate buttons (bottom-right). Layout, size, opacity and joystick
 ## sensitivity come from SaveManager (see ControlLayout); `edit_mode` turns the same control into the layout editor.
 ## Multi-touch aware: every finger is tracked by its touch index. Buttons press the same Input actions the keyboard
@@ -10,6 +10,7 @@ signal layout_edited
 
 const STICK_RADIUS := 78.0
 const DEADZONE := 0.22
+const JUMP_THRESHOLD := 0.55
 const DEBOUNCE_MS := 70   # ignore a second press of the same button this soon after the first (touch bounce)
 const ACTIONS_ALL := ["move_left", "move_right", "move_down", "move_up", "jump", "attack", "dodge", "skill1", "skill2", "skill3"]
 
@@ -182,6 +183,12 @@ func _apply_stick() -> void:
 		Input.action_press("move_down")
 	else:
 		Input.action_release("move_down")
+	# stick up = jump (re-pressing needs the stick to come back below the threshold, so double jumps are deliberate)
+	if _stick_vec.y < -JUMP_THRESHOLD:
+		if not Input.is_action_pressed("jump"):
+			Input.action_press("jump")
+	else:
+		Input.action_release("jump")
 
 
 func _process(delta: float) -> void:
@@ -216,8 +223,6 @@ func _button_color(n: String) -> Color:
 	match n:
 		"attack":
 			return Color("#e8584f")
-		"jump":
-			return Color("#4fb0e8")
 		"mobility":
 			return Color("#4fd36b")
 		"ultimate":
@@ -240,6 +245,11 @@ func _draw() -> void:
 	var knob := _stick_pos if _stick_index != -1 else home
 	draw_circle(knob, 34, Color(0.03, 0.02, 0.08, 0.7 * op))
 	draw_circle(knob, 29, Color(0.62, 0.5, 0.95, (0.65 if _stick_index != -1 else 0.35) * op))
+	# hint: the top of the ring is the jump zone
+	var up := base + Vector2(0, -STICK_RADIUS - 16)
+	var jumping := _stick_vec.y < -JUMP_THRESHOLD
+	var ac := Color(0.75, 0.9, 1.0, (0.9 if jumping else 0.35) * op)
+	draw_polyline(PackedVector2Array([up + Vector2(-12, 8), up + Vector2(0, -4), up + Vector2(12, 8)]), ac, 4.0)
 	for n in ControlLayout.NAMES:
 		_draw_button(n, font, op)
 
@@ -267,7 +277,7 @@ func _draw_button(n: String, font: Font, op: float) -> void:
 	draw_circle(c, rr + 4, Color("#08050f", 0.85 * op))
 	draw_circle(c, rr, Color(col.darkened(0.45 if down else 0.15), 0.62 * op))
 	draw_arc(c, rr - 2, 0, TAU, 28, Color(col.lightened(0.3), 0.9 * op), 3.0)
-	var icon := "jump" if n == "jump" else (sk.icon if sk != null else "")
+	var icon := sk.icon if sk != null else ""
 	var icon_col := Color(1, 1, 1, op) if (frac <= 0.0 and usable) else Color(1, 1, 1, 0.4 * op)
 	SkillIcons.draw(self, icon, c, rr, icon_col)
 	if edit_mode:
@@ -293,5 +303,5 @@ func _draw_button(n: String, font: Font, op: float) -> void:
 		if secs > 0.0:
 			var txt := "%.0f" % ceilf(secs) if secs >= 1.0 else "%.1f" % secs
 			draw_string(font, c + Vector2(-r, 8), txt, HORIZONTAL_ALIGNMENT_CENTER, r * 2.0, 18, Color(1, 1, 1, op))
-	elif not usable and n != "ultimate" and n != "jump":
+	elif not usable and n != "ultimate":
 		draw_arc(c, rr - 6, 0, TAU, 24, Color(1.0, 0.3, 0.3, 0.7 * op), 3.0)   # off cooldown but missing resource

@@ -121,6 +121,10 @@ func _draw() -> void:
 			draw_rect(Rect2(-len, -w, 8, w * 2), c.darkened(0.2))
 			if style == "arrow_big":
 				draw_rect(Rect2(-len - 24, -3, 24, 6), Color(c, 0.35))
+		"rift":    # crescent of torn space
+			draw_arc(Vector2(-10, 0), 22.0, -1.3, 1.3, 14, Color(c, 0.4), 12.0)
+			draw_arc(Vector2(-8, 0), 22.0, -1.2, 1.2, 14, c, 6.0)
+			draw_arc(Vector2(-6, 0), 22.0, -0.9, 0.9, 10, Color.WHITE, 2.0)
 		"mark":
 			draw_rect(Rect2(-30, -2, 30, 4), Color(c, 0.5))
 			draw_colored_polygon(PackedVector2Array([Vector2(14, 0), Vector2(0, -9), Vector2(-6, 0), Vector2(0, 9)]), c)
